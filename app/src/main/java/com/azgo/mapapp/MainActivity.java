@@ -52,12 +52,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         if (googleServicesAvailable()) {
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 checkLocationPermission();
             }
             Toast.makeText(this, "Connected!!", Toast.LENGTH_LONG).show();
-            setContentView(R.layout.activity_main);
+
             mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             mapFrag.getMapAsync(this);
 
@@ -306,12 +307,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    protected void createLocationRequest(){
+    /*protected void createLocationRequest(){
         LocationRequest mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
+    }*/
     @Override
     public void onConnectionSuspended(int i){
 
@@ -335,12 +336,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
         markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
         mCurrentLocationMarker = mGoogleMap.addMarker(markerOptions);
-
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, (float)19.08);
         //move map camera
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo((float)19.08));
+        mGoogleMap.animateCamera(cameraUpdate);
 
         //stop location updates
         if (mGoogleApiClient != null) {
