@@ -29,4 +29,5 @@ dependencies {
     //compile 'com.google.android.gms:play-services-appindexing:9.0.2'
 
     compile 'com.google.android.gms:play-services:+'
+    compile 'com.google.android.gms:play-services-location:+'
 }
