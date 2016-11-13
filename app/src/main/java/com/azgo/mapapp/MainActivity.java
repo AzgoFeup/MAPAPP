@@ -284,6 +284,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.mapTypeHybrid:
                 mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
                 break;
+            case R.id.logout:
+                signOut();
+                break;
 
             default:
                 break;
@@ -418,5 +421,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             // other 'case' lines to check for other
             // permissions this app might request
         }
+    }
+    public void signOut() {
+        //TODO: check if google or facebook and logout
     }
 }
