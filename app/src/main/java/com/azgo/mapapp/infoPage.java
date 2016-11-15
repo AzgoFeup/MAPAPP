@@ -58,6 +58,12 @@ public class infoPage extends AppCompatActivity{
         }
     }
 
+    @Override
+    public void finish() {
+        super.finish();
+        goMainScreen();
+    }
+
     private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         ImageView bmImage;
 
@@ -81,6 +87,12 @@ public class infoPage extends AppCompatActivity{
         protected void onPostExecute(Bitmap result) {
             bmImage.setImageBitmap(result);
         }
+    }
+
+    private void goMainScreen() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     private void goLoginScreen() {
