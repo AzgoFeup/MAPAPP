@@ -19,6 +19,9 @@
         android:id="@+id/mapTypeHybrid"
         android:title="@string/map_type_hybrid"/>
     <item
+        android:id="@+id/info"
+        android:title="@string/info"/>
+    <item
         android:id="@+id/logout"
         android:title="@string/logout"/>
 
