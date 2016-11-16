@@ -292,9 +292,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.logout:
                 signOut();
                 break;
-            case R.id.info:
-                goUserInfoPage();
-                break;
 
             default:
                 break;
@@ -439,12 +436,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void goLoginScreen() {
         Intent intent = new Intent(this, mainLogin.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-    }
-
-    private void goUserInfoPage() {
-        Intent intent = new Intent(this, infoPage.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }
