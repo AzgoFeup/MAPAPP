@@ -239,7 +239,11 @@ public class mainLogin extends AppCompatActivity implements
                                     Toast.LENGTH_SHORT).show();
 
                         }
-                        else goMainScreen();
+
+                        else {
+                            Log.e(TAG, "LOGINGOGGLE: aqui");
+                            goMainScreen();
+                        }
                         // ...
                     }
                 });
@@ -250,18 +254,23 @@ public class mainLogin extends AppCompatActivity implements
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.e(TAG, "onActivityResult"+requestCode);
+        Log.e(TAG, "onActivityResult "+requestCode);
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
+            Log.e(TAG, "LOGINGOGGLE: toCheck");
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            Log.e(TAG, "LOGINGOGGLE: checking");
             if (result.isSuccess()) {
+                Log.e(TAG, "LOGINGOGGLE: True");
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
 
             } else {
-                // TODO: Google Sign In failed, update UI appropriately
-                // ...
+                Log.e(TAG, "LOGINGOOGLE: False");
+                Toast.makeText(mainLogin.this, "Authentication failed.",
+                        Toast.LENGTH_SHORT).show();
+
             }
         }else{
             //If not request code is RC_SIGN_IN it must be facebook
@@ -271,6 +280,7 @@ public class mainLogin extends AppCompatActivity implements
 
 
     private void signIn() {
+        Log.e(TAG, "SIGNIN:GOOGLE");
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
