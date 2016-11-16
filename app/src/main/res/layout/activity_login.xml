@@ -2,16 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/button_facebook_login"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="46dp"
-        android:layout_above="@+id/gmail_sign_in_button"
-        android:layout_centerHorizontal="true" />
+    android:orientation="vertical"
+    android:background="@drawable/loginBg" >
 
     <Button
         android:text="@string/debug"
@@ -28,8 +20,16 @@
         android:onClick="onClick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="135dp"
         android:layout_above="@+id/buttonDebug"
         android:layout_centerHorizontal="true" />
+
+    <com.facebook.login.widget.LoginButton
+        android:id="@+id/button_facebook_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_above="@+id/gmail_sign_in_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp" />
 
 </RelativeLayout>
