@@ -2,6 +2,7 @@ package com.azgo.mapapp;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -18,6 +19,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -35,6 +38,8 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.io.IOException;
 import java.util.List;
 import java.io.IOException;
@@ -287,6 +292,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.logout:
                 signOut();
                 break;
+            case R.id.info:
+                goUserInfoPage();
+                break;
 
             default:
                 break;
@@ -423,6 +431,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
     public void signOut() {
-        //TODO: check if google or facebook and logout
+        FirebaseAuth.getInstance().signOut(); //for gmail
+        LoginManager.getInstance().logOut(); //for facebook
+
+        goLoginScreen();
+    }
+
+    private void goLoginScreen() {
+        Intent intent = new Intent(this, mainLogin.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+    private void goUserInfoPage() {
+        Intent intent = new Intent(this, infoPage.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }
