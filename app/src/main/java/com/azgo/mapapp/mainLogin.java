@@ -242,6 +242,7 @@ public class mainLogin extends AppCompatActivity implements
 
                         else {
                             Log.e(TAG, "LOGINGOGGLE: aqui");
+                            serverCommunication bserver = new serverCommunication(mAuth.getCurrentUser().getUid()); //
                             goMainScreen();
                         }
                         // ...
@@ -255,6 +256,7 @@ public class mainLogin extends AppCompatActivity implements
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.e(TAG, "onActivityResult "+requestCode);
+
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
             Log.e(TAG, "LOGINGOGGLE: toCheck");
