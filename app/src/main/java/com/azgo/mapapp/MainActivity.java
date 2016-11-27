@@ -449,3 +449,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         startActivity(intent);
     }
 }
+/*para usar com os grafos
+        Graph grafo = new Graph();
+        grafo.insertNodes();
+        boolean[][] adj = new boolean[69][69];
+        adj = grafo.fillMatrix();
+        LinkedList<Graph.Node> caminho = new LinkedList<>();
+        List<Graph.Node> nos = grafo.getListNodes();
+        Graph.Node indexSource = grafo.getNode(22);
+        Graph.Node indexDest= grafo.getNode(11);
+        double result = MatrixGraphAlgorithms.shortestPath(adj, grafo, indexSource, indexDest, caminho);
+        if(result == -1)
+            Log.d("meh", "meh");
+        for(Graph.Node no : caminho){
+            int k = no.getIndex();
+            Log.d("caminho: ", String.valueOf(k));
+        }
+    }
+ */
