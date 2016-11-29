@@ -3,17 +3,23 @@ package com.azgo.mapapp;
 
 
 import android.accounts.AccountManager;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.annotation.IntegerRes;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +55,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 public class mainLogin extends AppCompatActivity implements
         View.OnClickListener
@@ -67,6 +74,15 @@ public class mainLogin extends AppCompatActivity implements
     //google
     private GoogleApiClient mGoogleApiClient;
 
+    //server
+    private TCPClient mTcpClient;
+    private static String Message;
+    private static boolean messageReceived;
+    private static boolean errorLogin;
+
+    //MISC
+    private ProgressBar mProgress;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
@@ -75,6 +91,17 @@ public class mainLogin extends AppCompatActivity implements
         FacebookSdk.sdkInitialize(getApplicationContext());
 
         setContentView(R.layout.activity_login);
+        //SERVER
+
+        if(mTcpClient == null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                new connectTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            } else {
+                new connectTask().execute("");
+            }
+        }
+
+        //***///
         //findViewById(R.id.button_facebook_login).setOnClickListener(this);
 
 
@@ -105,7 +132,7 @@ public class mainLogin extends AppCompatActivity implements
         findViewById(R.id.gmail_sign_in_button).setOnClickListener(this);
         findViewById(R.id.button_facebook_login).setOnClickListener(this);
 
-
+        //new connectTask().execute(""); //AQUI?
         /*********************************
          *       FIREBASE
          ***************************/
@@ -242,7 +269,6 @@ public class mainLogin extends AppCompatActivity implements
 
                         else {
                             Log.e(TAG, "LOGINGOGGLE: aqui");
-                            serverCommunication bserver = new serverCommunication(mAuth.getCurrentUser().getUid()); //
                             goMainScreen();
                         }
                         // ...
@@ -311,15 +337,128 @@ public class mainLogin extends AppCompatActivity implements
             signIn();
         }
         else if (i == R.id.buttonDebug){
-            goMainScreen();
+            Intent intent = new Intent(mainLogin.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         }
     }
 
     private void goMainScreen() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+
+        Log.e("login", "Main");
+
+        if(mTcpClient == null)  {
+            Log.e("mTCPClient", "Not on");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                new connectTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            } else {
+                new connectTask().execute("");
+            }
+        }
+
+        Log.e("login", "Connecting...");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ) {
+            new login().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+        } else {
+            new login().execute("");
+        }
+
+
     }
 
+    public class connectTask extends AsyncTask<String,String,TCPClient> {
 
+        @Override
+        protected TCPClient doInBackground(String... message) {
+
+            //we create a TCPClient object and
+            mTcpClient = new TCPClient(new TCPClient.OnMessageReceived() {
+                @Override
+                //here the messageReceived method is implemented
+                public void messageReceived(String message) {
+                    //this method calls the onProgressUpdate
+                    Log.e("DEBUGMY", message);
+                    publishProgress(message);
+
+                }
+            });
+
+            mTcpClient.run();
+
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+
+            //in the arrayList we add the messaged received from server
+            Log.d("onProgress", values[0]);
+            Message = values[0];
+            messageReceived = true;
+            // notify the adapter that the data set has changed. This means that new message received
+            // from server was added to the list
+
+
+        }
+    }
+
+    public class login extends AsyncTask<String,String,String> {
+
+        private final ProgressDialog dialog = new ProgressDialog(mainLogin.this);
+
+        @Override
+        protected String doInBackground(String... message) {
+
+            Log.e("login", "Entering while");
+            while(true){
+                Log.e("login", "Trying to send login");
+                if(mTcpClient == null){
+                    return "False";
+                }
+
+                mTcpClient.sendMessage("Login@delfim");
+
+                while(messageReceived != true);
+
+                messageReceived = false;
+                if(Message.equals("ok")) break;
+            }
+
+
+            return "True";
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            this.dialog.setMessage("Processing...");
+            this.dialog.show();
+            while (mTcpClient.done != true);
+        }
+
+        @Override
+        protected void onPostExecute(String value) {
+            super.onPostExecute(value);
+
+
+
+            if(value.equals("True")) {
+                this.dialog.dismiss();
+                Intent intent = new Intent(mainLogin.this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                if(this.isCancelled() ==true) cancel(true);
+            }
+            else {
+
+            }
+        }
+
+
+    }
 }
+
+
