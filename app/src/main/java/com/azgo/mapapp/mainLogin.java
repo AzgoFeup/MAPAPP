@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -160,10 +161,10 @@ public class mainLogin extends AppCompatActivity implements
         /**************
          * FACEBOOK
          ************/
-
+/*
         // Initialize Facebook Login button
         mCallbackManager = CallbackManager.Factory.create();
-        LoginButton loginButton = (LoginButton) findViewById(R.id.button_facebook_login);
+        LoginButton loginButton = (Login)findViewById(R.id.button_facebook_login);
         loginButton.setReadPermissions("email", "public_profile");
         loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
@@ -190,7 +191,7 @@ public class mainLogin extends AppCompatActivity implements
             }
         });
     // [END initialize_fblogin]
-
+*/
         /**
          *  GMAIL
          */
