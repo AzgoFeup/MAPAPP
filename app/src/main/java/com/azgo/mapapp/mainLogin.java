@@ -378,7 +378,7 @@ public class mainLogin extends AppCompatActivity implements
                 //here the messageReceived method is implemented
                 public void messageReceived(String message) {
                     //this method calls the onProgressUpdate
-                    Log.e("DEBUGMY", message);
+                    Log.e("DEBUGME", message);
                     publishProgress(message);
 
                 }

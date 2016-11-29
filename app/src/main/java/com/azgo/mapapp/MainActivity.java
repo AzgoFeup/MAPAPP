@@ -2,17 +2,20 @@ package com.azgo.mapapp;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -53,11 +56,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Location mLastLocation;
     Marker mCurrentLocationMarker;
 
+    //Communicação
+    public TCPClient mTcpClient;
+    private static boolean messageReceived;
+    private static String Message;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Eliminate this
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            } else {
+                new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+        }
+        //till were
+
+
         if (googleServicesAvailable()) {
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 checkLocationPermission();
@@ -71,12 +91,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //No Google Maps Layout
         }
     }
+
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
 
         //stop location updates when Activity is no longer active
-        if(mGoogleApiClient != null){
+        if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 
         }
@@ -101,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
 
-        if(mGoogleMap != null) {
+        if (mGoogleMap != null) {
 
 
             mGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
@@ -147,32 +168,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
 
-            mGoogleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter(){
+        mGoogleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
-                @Override
-                public View getInfoWindow(Marker marker) {
-                    return null;
-                }
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
 
-                @Override
-                public View getInfoContents(Marker marker) {
-                    View v = getLayoutInflater().inflate(R.layout.info_window, null);
+            @Override
+            public View getInfoContents(Marker marker) {
+                View v = getLayoutInflater().inflate(R.layout.info_window, null);
 
-                    TextView tvLocality = (TextView) v.findViewById(R.id.tv_locality);
-                    TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
-                    TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
-                    TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
+                TextView tvLocality = (TextView) v.findViewById(R.id.tv_locality);
+                TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
+                TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
+                TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
 
-                    LatLng ll = marker.getPosition();
-                    tvLocality.setText(marker.getTitle());
-                    tvLat.setText("Latitude: " + ll.latitude);
-                    tvLng.setText("Longitude: " + ll.longitude);
-                    tvSnippet.setText(marker.getSnippet());
+                LatLng ll = marker.getPosition();
+                tvLocality.setText(marker.getTitle());
+                tvLat.setText("Latitude: " + ll.latitude);
+                tvLng.setText("Longitude: " + ll.longitude);
+                tvSnippet.setText(marker.getSnippet());
 
-                    return v;
-                }
+                return v;
+            }
 
-            });
+        });
 
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mGoogleMap.setIndoorEnabled(true);
@@ -189,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mGoogleMap.setMyLocationEnabled(true);
         }
     }
+
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -197,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .build();
         mGoogleApiClient.connect();
     }
+
     private void goToLocationZoom(double lat, double lng, float zoom) {
         LatLng ll = new LatLng(lat, lng);
         CameraUpdate update = CameraUpdateFactory.newLatLngZoom(ll, zoom);
@@ -230,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setMarker(String locality, double lat, double lng) {
         //to erase previous markers...
-        if(marker != null){
+        if (marker != null) {
             removeEverything();
         }
 
@@ -239,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .draggable(true)
                 //to specify a costum marker, use .icon(BitmapDescriptorFactory.fromResource(id_Resource))...
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                .position(new LatLng(lat,lng))
+                .position(new LatLng(lat, lng))
                 .snippet("I am here"); //something added to add more info
 
 
@@ -258,12 +281,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return mGoogleMap.addCircle(options);
     }
 
-    private void removeEverything(){
+    private void removeEverything() {
         marker.remove();
         marker = null;
         circle.remove();
         circle = null;
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
@@ -325,20 +349,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }*/
     @Override
-    public void onConnectionSuspended(int i){
+    public void onConnectionSuspended(int i) {
 
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult){
+    public void onConnectionFailed(ConnectionResult connectionResult) {
 
     }
 
     @Override
-    public void onLocationChanged(Location location)
-    {
+    public void onLocationChanged(Location location) {
         mLastLocation = location;
-        if (mCurrentLocationMarker!= null) {
+        if (mCurrentLocationMarker != null) {
             mCurrentLocationMarker.remove();
         }
 
@@ -349,7 +372,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         markerOptions.title("Current Position");
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
         mCurrentLocationMarker = mGoogleMap.addMarker(markerOptions);
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, (float)19.08);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, (float) 19.08);
         //move map camera
         mGoogleMap.animateCamera(cameraUpdate);
 
@@ -361,7 +384,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    public boolean checkLocationPermission(){
+
+    public boolean checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -393,7 +417,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return true;
         }
     }
-
 
 
     @Override
@@ -430,6 +453,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             // permissions this app might request
         }
     }
+
     public void signOut() {
         FirebaseAuth.getInstance().signOut(); //for gmail
         LoginManager.getInstance().logOut(); //for facebook
@@ -448,7 +472,73 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }
+
+
+///COMUNICAÇÃO
+
+    public class backgroundReception extends AsyncTask<String, String, TCPClient> {
+
+        @Override
+        protected TCPClient doInBackground(String... message) {
+
+            //we create a TCPClient object and
+            mTcpClient = new TCPClient(new TCPClient.OnMessageReceived() {
+                @Override
+                //here the messageReceived method is implemented
+                public void messageReceived(String message) {
+                    //this method calls the onProgressUpdate
+                    Log.e("DEBUGME", message);
+                    publishProgress(message);
+
+                }
+            });
+
+            mTcpClient.run();
+
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+
+
+            Log.d("onProgress", values[0]);
+            Message = values[0];
+            messageReceived = true;
+            // notify the adapter that the data set has changed. This means that new message received
+            // from server was added to the list
+
+
+        }
+    }
+
+    public class backgroundSending extends AsyncTask<String, String, String> {
+
+
+        @Override
+        protected String doInBackground(String... message) {
+
+            while (mTcpClient == null) ;
+
+
+
+                try {
+                    //mTcpClient.sendMessage();
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                return "";
+
+        }
+    }
 }
+
+
+
 /*para usar com os grafos
         Graph grafo = new Graph();
         grafo.insertNodes();

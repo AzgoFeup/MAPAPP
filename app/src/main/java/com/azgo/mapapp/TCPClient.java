@@ -14,7 +14,7 @@ import java.net.Socket;
 public class TCPClient implements Runnable {
 
     private String serverMessage;
-    public static final String SERVERIP = "192.168.50.138"; //your computer IP address
+    public static final String SERVERIP = "192.168.50.138"; //TODO: pinguim.fe.up.pt dosen't work
     public static final int SERVERPORT = 20502;
     private OnMessageReceived mMessageListener = null;
     private boolean mRun = false;
