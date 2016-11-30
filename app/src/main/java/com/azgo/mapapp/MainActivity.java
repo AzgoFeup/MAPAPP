@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     Marker mCurrentLocationMarker;
+    Button btn1;
+
 
 
     //prepare graph
@@ -203,6 +206,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 tvLat.setText("Latitude: " + ll.latitude);
                 tvLng.setText("Longitude: " + ll.longitude);
                 tvSnippet.setText(marker.getSnippet());
+                /*final Button button = (Button) findViewById(R.id.button1);
+                button.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        // Perform action on click
+                        //START NAVIGATION HERE!!!!
+                    }
+                });*/
+
 
                 return v;
             }
@@ -274,8 +285,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     Circle circle;
 
-    private void setMarker(String locality, double lat, double lng) {
-        //to erase previous markers...
+    private void setMarker(final String locality, double lat, double lng) {
+
         MarkerOptions options = new MarkerOptions()
                 .title(locality)
                 //.draggable(true)
@@ -287,9 +298,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         marker = mGoogleMap.addMarker(options);
 
-       // circle = drawCircle(new LatLng(lat, lng));
     }
 
+/*
     private Circle drawCircle(LatLng latLng) {
         CircleOptions options = new CircleOptions()
                 .center(latLng)
@@ -299,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .strokeWidth(1);
         return mGoogleMap.addCircle(options);
     }
-
+*/
     private void removeEverything() {
         marker.remove();
         marker = null;
