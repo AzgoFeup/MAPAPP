@@ -28,6 +28,13 @@ public class Graph {
         public int getIndex(){
             return index;
         }
+        public String getLabel(){return label;}
+        public double getLatitude(){
+            return latitude;
+        }
+        public double getLongitude(){
+            return longitude;
+        }
 
     }
 

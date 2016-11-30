@@ -56,6 +56,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Location mLastLocation;
     Marker mCurrentLocationMarker;
 
+
+    //prepare graph
+    Graph grafo = new Graph();
+    List<Graph.Node> nodes = grafo.insertNodes();
+    boolean[][] adj = grafo.fillMatrix();
+    List<Graph.Node> nos = grafo.getListNodes();
+
+
     //Communicação
     public TCPClient mTcpClient;
     private static boolean messageReceived;
@@ -131,7 +139,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     MainActivity.this.setMarker("Local", latLng.latitude, latLng.longitude);
                 }
             });
-
+            //set markers on all the rooms
+            for(Graph.Node no : nodes){
+                if(no.getIndex()<=35)
+                    MainActivity.this.setMarker(no.getLabel(), no.getLatitude(), no.getLongitude());
+                if(no.getIndex()>35)
+                    break;
+            }
 
             mGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
@@ -233,19 +247,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void geoLocate(View view) throws IOException {
         EditText et = (EditText) findViewById(R.id.editText);
         String location = et.getText().toString();
+        Graph.Node searchNode = null;
         //converts string to lat and lng
-        Geocoder gc = new Geocoder(this);
-        List<Address> list = gc.getFromLocationName(location, 1);
-        Address address = list.get(0);
+        //Geocoder gc = new Geocoder(this);
+        //List<Address> list = gc.getFromLocationName(location, 1);
+        //Address address = list.get(0);
         //devolve a localização
-        String locality = address.getLocality();
+        //String locality = address.getLocality();
+        //set markers on all the rooms
+        for(Graph.Node no : nodes){
+            if(no.getLabel().equals(location)) {
+                searchNode = no;
+                break;
+            }
+        }
 
-        Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
 
-        double lat = address.getLatitude();
-        double lng = address.getLongitude();
-        goToLocationZoom(lat, lng, (float) 19.08);
-        setMarker(locality, lat, lng);
+        Toast.makeText(this, location, Toast.LENGTH_LONG).show();
+
+        double lat = searchNode.getLatitude();
+        double lng = searchNode.getLongitude();
+        goToLocationZoom(lat, lng, (float) 21);
+        //setMarker(locality, lat, lng);
 
     }
 
@@ -253,14 +276,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setMarker(String locality, double lat, double lng) {
         //to erase previous markers...
-        if (marker != null) {
-            removeEverything();
-        }
-
         MarkerOptions options = new MarkerOptions()
                 .title(locality)
-                .draggable(true)
-                //to specify a costum marker, use .icon(BitmapDescriptorFactory.fromResource(id_Resource))...
+                //.draggable(true)
+                //to specify a custom marker, use .icon(BitmapDescriptorFactory.fromResource(id_Resource))...
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                 .position(new LatLng(lat, lng))
                 .snippet("I am here"); //something added to add more info
@@ -268,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         marker = mGoogleMap.addMarker(options);
 
-        circle = drawCircle(new LatLng(lat, lng));
+       // circle = drawCircle(new LatLng(lat, lng));
     }
 
     private Circle drawCircle(LatLng latLng) {
