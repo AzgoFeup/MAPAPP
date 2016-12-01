@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     Marker mCurrentLocationMarker;
-    Button btn1;
+    Button myButton;
 
 
 
@@ -146,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             for(Graph.Node no : nodes){
                 if(no.getIndex()<=35)
                     MainActivity.this.setMarker(no.getLabel(), no.getLatitude(), no.getLongitude());
-                if(no.getIndex()>35)
+                else
                     break;
             }
 
@@ -178,6 +179,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Address add = list.get(0);
                     marker.setTitle(add.getLocality());
                     marker.showInfoWindow();
+                    //add the button for "Navigate Here"
+
 
 
                 }
@@ -206,14 +209,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 tvLat.setText("Latitude: " + ll.latitude);
                 tvLng.setText("Longitude: " + ll.longitude);
                 tvSnippet.setText(marker.getSnippet());
-                /*final Button button = (Button) findViewById(R.id.button1);
-                button.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        // Perform action on click
-                        //START NAVIGATION HERE!!!!
-                    }
-                });*/
-
 
                 return v;
             }
@@ -283,6 +278,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    public void navigation (View view) throws IOException{
+        EditText et = (EditText) findViewById(R.id.editText);
+        String location = et.getText().toString();
+        Graph.Node searchNode = null;
+        for(Graph.Node no : nodes){
+            if(no.getLabel().equals(location)) {
+                searchNode = no;
+                break;
+            }
+        }
+        double lat = searchNode.getLatitude();
+        double lng = searchNode.getLongitude();
+        Toast.makeText(this, "Starting navigation to "+location, Toast.LENGTH_LONG).show();
+
+    }
+
     Circle circle;
 
     private void setMarker(final String locality, double lat, double lng) {
@@ -316,6 +327,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         marker = null;
         circle.remove();
         circle = null;
+    }
+    public void onClick(View v)
+    {
+        myButton= (Button)findViewById(this.getTaskId());
+        LinearLayout vwParentRow = (LinearLayout)v.getParent();
+        LinearLayout vwchild = (LinearLayout)vwParentRow.getChildAt(1);
+
+        //get the row the clicked button is in
+        TextView child = (TextView)vwchild.getChildAt(0);
+        String roomName = (String)child.getText();
+        Log.d("Sala clicada", roomName);
+        if(roomName.equals("null") || roomName.isEmpty() || roomName==null)
+            Toast.makeText(this, "zerito", Toast.LENGTH_LONG).show();
+        else
+            Toast.makeText(this, "botão clicado"+roomName, Toast.LENGTH_LONG).show();
+
+        //
+        //
+        // navigation(roomName);
+
     }
 
     @Override
