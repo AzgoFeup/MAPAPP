@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Location mLastLocation;
     Marker mCurrentLocationMarker;
     Button myButton;
+    String localizacao = null;
 
 
 
@@ -179,7 +180,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Address add = list.get(0);
                     marker.setTitle(add.getLocality());
                     marker.showInfoWindow();
-                    //add the button for "Navigate Here"
+                    //localizacao = marker.getTitle();
+
 
 
 
@@ -209,9 +211,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 tvLat.setText("Latitude: " + ll.latitude);
                 tvLng.setText("Longitude: " + ll.longitude);
                 tvSnippet.setText(marker.getSnippet());
+                //localizacao = marker.getTitle();
 
                 return v;
             }
+
 
         });
 
@@ -255,9 +259,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         String location = et.getText().toString();
         Graph.Node searchNode = null;
         //converts string to lat and lng
-        //Geocoder gc = new Geocoder(this);
-        //List<Address> list = gc.getFromLocationName(location, 1);
-        //Address address = list.get(0);
         //devolve a localização
         //String locality = address.getLocality();
         //set markers on all the rooms
@@ -281,16 +282,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void navigation (View view) throws IOException{
         EditText et = (EditText) findViewById(R.id.editText);
         String location = et.getText().toString();
-        Graph.Node searchNode = null;
-        for(Graph.Node no : nodes){
-            if(no.getLabel().equals(location)) {
-                searchNode = no;
-                break;
+        if(location!=null && !location.isEmpty()){
+            Graph.Node searchNode = null;
+            for(Graph.Node no : nodes){
+                if(no.getLabel().equals(location)) {
+                    searchNode = no;
+                    break;
+                }
             }
+            double lat = searchNode.getLatitude();
+            double lng = searchNode.getLongitude();
+            Toast.makeText(this, "Starting navigation to "+location, Toast.LENGTH_LONG).show();
+            startNavigationTo(searchNode, mLastLocation);
         }
-        double lat = searchNode.getLatitude();
-        double lng = searchNode.getLongitude();
-        Toast.makeText(this, "Starting navigation to "+location, Toast.LENGTH_LONG).show();
 
     }
 
@@ -327,26 +331,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         marker = null;
         circle.remove();
         circle = null;
-    }
-    public void onClick(View v)
-    {
-        myButton= (Button)findViewById(this.getTaskId());
-        LinearLayout vwParentRow = (LinearLayout)v.getParent();
-        LinearLayout vwchild = (LinearLayout)vwParentRow.getChildAt(1);
-
-        //get the row the clicked button is in
-        TextView child = (TextView)vwchild.getChildAt(0);
-        String roomName = (String)child.getText();
-        Log.d("Sala clicada", roomName);
-        if(roomName.equals("null") || roomName.isEmpty() || roomName==null)
-            Toast.makeText(this, "zerito", Toast.LENGTH_LONG).show();
-        else
-            Toast.makeText(this, "botão clicado"+roomName, Toast.LENGTH_LONG).show();
-
-        //
-        //
-        // navigation(roomName);
-
     }
 
     @Override
@@ -479,7 +463,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    public void startNavigationTo(Graph.Node searchNode, Location mLastLocation){
+        //calculate closeste Node to mLastLocation
 
+
+
+        //calculate shortest path from firstNode to searchNode
+
+
+        //draw polyLine on maps
+
+
+
+        //change camera view on current user's location to start navigation
+
+
+        //return?
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
