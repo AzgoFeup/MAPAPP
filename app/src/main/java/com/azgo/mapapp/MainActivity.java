@@ -43,9 +43,12 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 import java.io.IOException;
 
@@ -315,17 +318,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-/*
-    private Circle drawCircle(LatLng latLng) {
-        CircleOptions options = new CircleOptions()
-                .center(latLng)
-                .radius(10)
-                .fillColor(0x33FF0000)
-                .strokeColor(Color.BLUE)
-                .strokeWidth(1);
-        return mGoogleMap.addCircle(options);
-    }
-*/
     private void removeEverything() {
         marker.remove();
         marker = null;
@@ -464,21 +456,88 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void startNavigationTo(Graph.Node searchNode, Location mLastLocation){
-        //calculate closeste Node to mLastLocation
+        //calculate closest Node to mLastLocation
 
+        LinkedList<Graph.Node> caminho = new LinkedList<>();
+        List<Graph.Node> nos = grafo.getListNodes();
+        Graph.Node closestNode;
+        closestNode = findClosestNode(mLastLocation.getLatitude(), mLastLocation.getLongitude(), nos);
+        Graph.Node indexSource = grafo.getNode(closestNode.getIndex());
 
 
         //calculate shortest path from firstNode to searchNode
+        Graph.Node indexDest= grafo.getNode(searchNode.getIndex());
+        double result = MatrixGraphAlgorithms.shortestPath(adj, grafo, indexSource, indexDest, caminho);
+        //shortest path is on caminho
+        //draw path on Google Maps
+        // Instantiates a new Polyline object and adds points to define the navigation path
+        PolylineOptions linePath = new PolylineOptions();
+        linePath.add(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()));
+        /*listIter = myList.listIterator(myList.size());
+        while (listIter.hasPrevious()) {
+            String prev = listIter.previous();
+            // Do something with prev here
+        }*/
 
+        for(Graph.Node no : caminho){
+            linePath.add(new LatLng(no.getLatitude(), no.getLongitude()));
+        }
+        //add extra options
+        linePath.width(25)
+                .geodesic(false)
+                .color(0x3F51B5);
 
-        //draw polyLine on maps
-
-
+        // Get back the mutable Polyline
+        Polyline mPolyLine = mGoogleMap.addPolyline(linePath);
 
         //change camera view on current user's location to start navigation
 
 
+
+
+        //when navigation is over mPolyline.setVisible(false)
         //return?
+    }
+    public static Graph.Node findClosestNode(double latitude, double longitude, List<Graph.Node> nodes){
+        Graph.Node closestNode = null;
+        double[][] points = new double[69][2];
+        double shortestDistance=0;
+        double distance=0;
+
+        //enter x,y coords into the 69x2 table points[][]
+        for(Graph.Node no : nodes){
+            points[no.getIndex()][0] = no.getLatitude();
+            points[no.getIndex()][1] = no.getLongitude();
+        }
+
+        //get the distance between the point in the ith row and the (m+1)th row
+        //and check if it's shorter than the distance between 0th and 1st
+        for(Graph.Node no : nodes)
+        {
+            //use m=i rather than 0 to avoid duplicate computations
+            for (int m=no.getIndex(); m<69-1;m++)
+            {
+                double dx = points[no.getIndex()][0] - latitude;
+                double dy = points[no.getIndex()][1] - longitude;
+                distance = Math.sqrt(dx*dx + dy*dy);
+
+                //set shortestDistance and closestPoints to the first iteration
+                if (m == 0 && no.getIndex() == 0)
+                {
+                    shortestDistance = distance;
+                    closestNode = no;
+                }
+                //then check if any further iterations have shorter distances
+                else if (distance < shortestDistance)
+                {
+                    shortestDistance = distance;
+                    closestNode = no;
+                }
+            }
+        }
+        //search the closest Node on shortest path
+
+        return closestNode;
     }
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -597,24 +656,3 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 }
-
-
-
-/*para usar com os grafos
-        Graph grafo = new Graph();
-        grafo.insertNodes();
-        boolean[][] adj = new boolean[69][69];
-        adj = grafo.fillMatrix();
-        LinkedList<Graph.Node> caminho = new LinkedList<>();
-        List<Graph.Node> nos = grafo.getListNodes();
-        Graph.Node indexSource = grafo.getNode(22);
-        Graph.Node indexDest= grafo.getNode(11);
-        double result = MatrixGraphAlgorithms.shortestPath(adj, grafo, indexSource, indexDest, caminho);
-        if(result == -1)
-            Log.d("meh", "meh");
-        for(Graph.Node no : caminho){
-            int k = no.getIndex();
-            Log.d("caminho: ", String.valueOf(k));
-        }
-    }
- */
