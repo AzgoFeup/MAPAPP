@@ -1,5 +1,6 @@
 package com.azgo.mapapp;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 /**
@@ -10,23 +11,45 @@ import android.util.Log;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class TCPClient implements Runnable {
 
     private String serverMessage;
     public static final String SERVERIP = "192.168.50.138"; //TODO: pinguim.fe.up.pt dosen't work
     public static final int SERVERPORT = 20502;
-    private OnMessageReceived mMessageListener = null;
     private boolean mRun = false;
-    public boolean done = false;
+    public boolean messageAdded = false;
     PrintWriter out;
     BufferedReader in;
+    public static Queue<String> array;
 
+    //TODO : FAZER ISTO MAIS FIAVEL
+
+    private static TCPClient instance= null;
     /**
      *  Constructor of the class. OnMessagedReceived listens for the messages received from server
      */
-    public TCPClient(OnMessageReceived listener) {
-        mMessageListener = listener;
+    public TCPClient() {
+
+    }
+
+
+    /**
+     * Creates a new instance of this class.
+     * @return The new instance.
+     */
+    public static TCPClient getInstance() {
+        if (instance == null) {
+            instance = new TCPClient();
+            array = new LinkedList<>();
+            instance.run();
+        }
+        return instance;
     }
 
     /**
@@ -79,15 +102,15 @@ public class TCPClient implements Runnable {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 Log.e("TCP Client", "C: Done.");
 
-                done = true;
                 //in this while the client listens for the messages sent by the server
                 while (mRun) {
                     serverMessage = in.readLine();
                     Log.d("TCP Client", "R: Received" + serverMessage);
 
-                    if (serverMessage != null && mMessageListener != null) {
+                    if (serverMessage != null ) {
                         //call the method messageReceived from MyActivity class
-                        mMessageListener.messageReceived(serverMessage);
+                        messageReceived(serverMessage);
+                        messageAdded = true;
                     }
                     serverMessage = null;
 
@@ -116,7 +139,9 @@ public class TCPClient implements Runnable {
 
     //Declare the interface. The method messageReceived(String message) will must be implemented in the MyActivity
     //class at on asynckTask doInBackground
-    public interface OnMessageReceived {
-        public void messageReceived(String message);
-    }
+        public void messageReceived(String message) {
+            Log.e("TCP", "messageReceived: "+ message);
+            array.add(message);
+        }
+
 }

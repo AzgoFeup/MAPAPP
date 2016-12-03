@@ -505,19 +505,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected TCPClient doInBackground(String... message) {
 
             //we create a TCPClient object and
-            mTcpClient = new TCPClient(new TCPClient.OnMessageReceived() {
-                @Override
-                //here the messageReceived method is implemented
-                public void messageReceived(String message) {
-                    //this method calls the onProgressUpdate
-                    Log.e("DEBUGME", message);
-                    publishProgress(message);
+            mTcpClient = TCPClient.getInstance();
 
-                }
-            });
+            while(mTcpClient.messageAdded == false);
 
-            mTcpClient.run();
+            if(!mTcpClient.array.isEmpty()) {
+                Log.e("Async Task 2", "Recebido: " + mTcpClient.array.peek());
 
+                publishProgress(mTcpClient.array.remove());
+                mTcpClient.messageAdded = false;
+            }
 
             return null;
         }
@@ -526,7 +523,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
 
-
+            //in the arrayList we add the messaged received from server
             Log.d("onProgress", values[0]);
             Message = values[0];
             messageReceived = true;
@@ -543,19 +540,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         protected String doInBackground(String... message) {
 
-            while (mTcpClient == null) ;
+            while (mTcpClient == null && mLastLocation == null) ;
 
 
-
+            while (true) {
                 try {
-                    //mTcpClient.sendMessage();
+                    Log.e("AQUI", "AQUI");
+                    if(mLastLocation != null) {
+                    mTcpClient.sendMessage(Double.toString(mLastLocation.getLatitude()));
+
+                        Log.e("ASYNC", Double.toString(mLastLocation.getLatitude()));
+                    }
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                return "";
-
+            }
+            //TODO: Desligar ser passar muito tempo ou logout
         }
     }
 }

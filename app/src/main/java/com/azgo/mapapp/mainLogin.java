@@ -373,20 +373,14 @@ public class mainLogin extends AppCompatActivity implements
         protected TCPClient doInBackground(String... message) {
 
             //we create a TCPClient object and
-            mTcpClient = new TCPClient(new TCPClient.OnMessageReceived() {
-                @Override
-                //here the messageReceived method is implemented
-                public void messageReceived(String message) {
-                    //this method calls the onProgressUpdate
-                    Log.e("DEBUGME", message);
-                    publishProgress(message);
+            mTcpClient = TCPClient.getInstance();
 
-                }
-            });
+            while(mTcpClient.messageAdded == false);
 
-            mTcpClient.run();
+            Log.e("Async Task", "Recebido: " + mTcpClient.array.peek());
 
-
+            publishProgress(mTcpClient.array.remove());
+            mTcpClient.messageAdded = false;
             return null;
         }
 
@@ -436,7 +430,6 @@ public class mainLogin extends AppCompatActivity implements
             super.onPreExecute();
             this.dialog.setMessage("Processing...");
             this.dialog.show();
-            while (mTcpClient.done != true);
         }
 
         @Override
