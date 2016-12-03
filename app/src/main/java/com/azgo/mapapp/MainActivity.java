@@ -74,10 +74,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Eliminate this
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+               // new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             } else {
                 new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+               // new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         }
         //till were
 
