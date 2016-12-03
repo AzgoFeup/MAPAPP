@@ -30,6 +30,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -43,11 +44,11 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    GoogleMap mGoogleMap;
-    SupportMapFragment mapFrag;
-    LocationRequest mLocationRequest;
-    GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
+    static GoogleMap mGoogleMap = null;
+    static SupportMapFragment mapFrag;
+    static LocationRequest mLocationRequest;
+    static GoogleApiClient mGoogleApiClient;
+    static Location mLastLocation;
     Marker mCurrentLocationMarker;
     static String location;
     static Location sendLastLocation;
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mGoogleMap = null;
 
         //Eliminate this
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -90,6 +92,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             mapFrag.getMapAsync(this);
+            //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            //mGoogleMap.setIndoorEnabled(true);
 
         } else {
             //No Google Maps Layout
@@ -99,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onPause() {
         super.onPause();
+        mGoogleMap=null;
 
         //stop location updates when Activity is no longer active
         if (mGoogleApiClient != null) {
@@ -125,6 +130,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
+        mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mGoogleMap.setIndoorEnabled(true);
 
         if (mGoogleMap != null) {
 
@@ -289,12 +296,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Circle circle;
 
     private void setMarker(final String locality, double lat, double lng) {
-
+        BitmapDescriptor icon;
+        switch(locality) {
+            case "B001":
+            case "B002":
+            case "B003":
+                icon = BitmapDescriptorFactory.fromResource(R.drawable.auditorio);
+                break;
+            default :
+                if (locality.charAt(0) == 'B') // Temporário até adicionar novos edificios ao mapa
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.sala);
+                else
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.posicao);
+        }
         MarkerOptions options = new MarkerOptions()
                 .title(locality)
                 //.draggable(true)
                 //to specify a custom marker, use .icon(BitmapDescriptorFactory.fromResource(id_Resource))...
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                .icon(icon)
                 .position(new LatLng(lat, lng))
                 .snippet("I am here"); //something added to add more info
 

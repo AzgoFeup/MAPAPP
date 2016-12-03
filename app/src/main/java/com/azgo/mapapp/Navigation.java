@@ -24,6 +24,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -35,6 +36,11 @@ import java.util.LinkedList;
 import java.util.List;
 import static com.azgo.mapapp.MainActivity.adj;
 import static com.azgo.mapapp.MainActivity.grafo;
+import static com.azgo.mapapp.MainActivity.mGoogleApiClient;
+import static com.azgo.mapapp.MainActivity.mGoogleMap;
+import static com.azgo.mapapp.MainActivity.mLastLocation;
+import static com.azgo.mapapp.MainActivity.mLocationRequest;
+import static com.azgo.mapapp.MainActivity.mapFrag;
 import static com.azgo.mapapp.MainActivity.nodes;
 
 public class Navigation extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -42,17 +48,20 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
     PolylineOptions linePath = new PolylineOptions();
     Marker marker;
     Polyline mPolyLine;
+    //MainActivity.mGoogleMap = null;
     //String locationNav;
-    SupportMapFragment mapFragNav;
-    GoogleApiClient mGoogleApiClientNav;
-    GoogleMap mGoogleMapNav;
-    LocationRequest mLocationRequestNav;
-    Location mLastLocationNav;
+    //SupportMapFragment mapFragNav;
+    //GoogleApiClient mGoogleApiClientNav;
+    //GoogleMap mGoogleMapNav;
+    //LocationRequest mLocationRequestNav;
+    //Location mLastLocationNav;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
+        mGoogleMap = null;
 
         //Bundle mapData = getIntent().getExtras();
         //get location to navigate to, from main Activity
@@ -66,8 +75,10 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
             }
             Toast.makeText(this, "Connected!!", Toast.LENGTH_LONG).show();
 
-            mapFragNav = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_nav);
-            mapFragNav.getMapAsync(this);
+            mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_nav);
+            mapFrag.getMapAsync(this);
+            //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            //mGoogleMap.setIndoorEnabled(true);
 
         } else {
             //No Google Maps Layout
@@ -78,10 +89,11 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
     @Override
     public void onPause() {
         super.onPause();
+        mGoogleMap = null;
 
         //stop location updates when Activity is no longer active
-        if (mGoogleApiClientNav != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClientNav, this);
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 
         }
     }
@@ -103,9 +115,13 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mGoogleMapNav = googleMap;
-        if (mGoogleMapNav != null) {
-            mGoogleMapNav.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+        mGoogleMap = null;
+        mGoogleMap = googleMap;
+
+        //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        //mGoogleMap.setIndoorEnabled(true);
+        if (mGoogleMap != null) {
+            mGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng latLng) {
                     Navigation.this.setMarker("Local", latLng.latitude, latLng.longitude);
@@ -123,61 +139,61 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
         }
 
 
-        mGoogleMapNav.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        mGoogleMapNav.setIndoorEnabled(true);
+        mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mGoogleMap.setIndoorEnabled(true);
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
                 buildGoogleApiClient();
-                mGoogleMapNav.setMyLocationEnabled(true);
+                mGoogleMap.setMyLocationEnabled(true);
             }
         } else {
             buildGoogleApiClient();
-            mGoogleMapNav.setMyLocationEnabled(true);
+            mGoogleMap.setMyLocationEnabled(true);
         }
-        Log.d("location", MainActivity.location);
+        //Log.d("location", MainActivity.location);
         navigation(MainActivity.location);
     }
 
     protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClientNav = new GoogleApiClient.Builder(this)
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        mGoogleApiClientNav.connect();
+        mGoogleApiClient.connect();
     }
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLocationRequestNav = new LocationRequest();
-        mLocationRequestNav.setInterval(1000);
-        mLocationRequestNav.setFastestInterval(1000);
-        mLocationRequestNav.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClientNav, mLocationRequestNav, this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        mGoogleMap = null;
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
+        mGoogleMap=null;
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocationNav = location;
+        mLastLocation = location;
         //Get map on navigation mode
-        LatLng latLng = new LatLng(mLastLocationNav.getLatitude(), mLastLocationNav.getLongitude());
+        LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
         // Construct a CameraPosition focusing on current position and animate the camera to that position.
         //change camera view on current user's location to start navigation
         CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -185,12 +201,12 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
                 .zoom(21)                   // Sets the zoom
                 .tilt(60)                   // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
-        mGoogleMapNav.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
 
         //stop location updates
-        if (mGoogleApiClientNav != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClientNav, this);
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
     }
 
@@ -244,10 +260,10 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
                             Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
 
-                        if (mGoogleApiClientNav == null) {
+                        if (mGoogleApiClient == null) {
                             buildGoogleApiClient();
                         }
-                        mGoogleMapNav.setMyLocationEnabled(true);
+                        mGoogleMap.setMyLocationEnabled(true);
                     }
 
                 } else {
@@ -279,17 +295,30 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
 
 
     private void setMarker(final String locality, double lat, double lng) {
+        BitmapDescriptor icon;
+        switch(locality) {
+            case "B001":
+            case "B002":
+            case "B003":
+                icon = BitmapDescriptorFactory.fromResource(R.drawable.auditorio);
+                break;
+            default :
+                if (locality.charAt(0) == 'B') // Temporário até adicionar novos edificios ao mapa
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.sala);
+                else
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.posicao);
+        }
 
         MarkerOptions options = new MarkerOptions()
                 .title(locality)
                 //.draggable(true)
                 //to specify a custom marker, use .icon(BitmapDescriptorFactory.fromResource(id_Resource))...
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                .icon(icon)
                 .position(new LatLng(lat, lng))
                 .snippet("I am here"); //something added to add more info
 
 
-        marker = mGoogleMapNav.addMarker(options);
+        marker = mGoogleMap.addMarker(options);
 
     }
 
@@ -341,7 +370,7 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
                 .color(Color.GREEN);
 
         // Get back the mutable Polyline
-        Polyline mPolyLine = mGoogleMapNav.addPolyline(linePath);
+        Polyline mPolyLine = mGoogleMap.addPolyline(linePath);
 
     }
 
@@ -392,6 +421,7 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
     public void exit(View view){
         //when navigation is over
         //mPolyLine.setVisible(false);
+        mGoogleMap = null;
         Intent j = new Intent(this, MainActivity.class);
         startActivity(j);
         //this.finish();
