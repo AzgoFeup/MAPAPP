@@ -33,9 +33,12 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -62,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Marker mCurrentLocationMarker;
     Button myButton;
     String localizacao = null;
+    int navegacao = 0;
 
 
 
@@ -456,8 +460,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void startNavigationTo(Graph.Node searchNode, Location mLastLocation){
+        navegacao = 1;
         //calculate closest Node to mLastLocation
-
+        //mGoogleMap.UiSettings.setMapToolbarEnabled(false);
         LinkedList<Graph.Node> caminho = new LinkedList<>();
         List<Graph.Node> nos = grafo.getListNodes();
         Graph.Node closestNode;
@@ -485,17 +490,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //add extra options
         linePath.width(25)
                 .geodesic(false)
-                .color(0x3F51B5);
+                .color(Color.GREEN);
 
         // Get back the mutable Polyline
         Polyline mPolyLine = mGoogleMap.addPolyline(linePath);
 
+        //Get map on navigation mode
+        LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        // Construct a CameraPosition focusing on current position and animate the camera to that position.
         //change camera view on current user's location to start navigation
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(latLng)      // Sets the center of the map to Mountain View
+                .zoom(21)                   // Sets the zoom
+                .tilt(60)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
+
+        /*while(mLastLocation.getLongitude()!=indexDest.getLongitude() && mLastLocation.getLatitude()!=indexDest.getLatitude()){
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
+            //move map camera
+            mGoogleMap.animateCamera(cameraUpdate);
+            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, (float)19.06);
+            mGoogleMap.moveCamera(update);
+        }*/
 
 
 
         //when navigation is over mPolyline.setVisible(false)
+        //navegacao = 0;
         //return?
     }
     public static Graph.Node findClosestNode(double latitude, double longitude, List<Graph.Node> nodes){
