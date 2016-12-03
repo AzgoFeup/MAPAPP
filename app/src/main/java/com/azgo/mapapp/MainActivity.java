@@ -44,10 +44,10 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    static GoogleMap mGoogleMap = null;
-    static SupportMapFragment mapFrag;
+    GoogleMap mGoogleMap;
+    SupportMapFragment mapFrag;
     static LocationRequest mLocationRequest;
-    static GoogleApiClient mGoogleApiClient;
+    GoogleApiClient mGoogleApiClient;
     static Location mLastLocation;
     Marker mCurrentLocationMarker;
     static String location;
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onPause() {
         super.onPause();
-        mGoogleMap=null;
+        //mGoogleMap=null;
 
         //stop location updates when Activity is no longer active
         if (mGoogleApiClient != null) {
@@ -282,6 +282,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         location = et.getText().toString();
         sendLastLocation = mLastLocation;
         Intent i = new Intent(this, Navigation.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
         //i.putExtra("location", locationMessage);
         //send String to navigate to room number
        /* if(location!=null && !location.isEmpty()){
@@ -289,6 +290,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this, "Starting navigation to "+location, Toast.LENGTH_LONG).show();
         }*/
         startActivity(i);
+        finish();
         //location.equals(null);
 
     }

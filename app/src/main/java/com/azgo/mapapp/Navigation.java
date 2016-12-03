@@ -36,11 +36,11 @@ import java.util.LinkedList;
 import java.util.List;
 import static com.azgo.mapapp.MainActivity.adj;
 import static com.azgo.mapapp.MainActivity.grafo;
-import static com.azgo.mapapp.MainActivity.mGoogleApiClient;
-import static com.azgo.mapapp.MainActivity.mGoogleMap;
+//import static com.azgo.mapapp.MainActivity.mGoogleApiClient;
+//import static com.azgo.mapapp.MainActivity.mGoogleMap;
 import static com.azgo.mapapp.MainActivity.mLastLocation;
 import static com.azgo.mapapp.MainActivity.mLocationRequest;
-import static com.azgo.mapapp.MainActivity.mapFrag;
+//import static com.azgo.mapapp.MainActivity.mapFrag;
 import static com.azgo.mapapp.MainActivity.nodes;
 
 public class Navigation extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -50,9 +50,9 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
     Polyline mPolyLine;
     //MainActivity.mGoogleMap = null;
     //String locationNav;
-    //SupportMapFragment mapFragNav;
-    //GoogleApiClient mGoogleApiClientNav;
-    //GoogleMap mGoogleMapNav;
+    SupportMapFragment mapFragNav;
+    GoogleApiClient mGoogleApiClientNav;
+    GoogleMap mGoogleMapNav;
     //LocationRequest mLocationRequestNav;
     //Location mLastLocationNav;
 
@@ -61,7 +61,7 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
-        mGoogleMap = null;
+        //mGoogleMap = null;
 
         //Bundle mapData = getIntent().getExtras();
         //get location to navigate to, from main Activity
@@ -75,8 +75,10 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
             }
             Toast.makeText(this, "Connected!!", Toast.LENGTH_LONG).show();
 
-            mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-            mapFrag.getMapAsync(this);
+            mapFragNav = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.nav_map);
+            mapFragNav.getMapAsync(this);
+            if(mapFragNav == null)
+                Log.d("ja fsote akfhdaklsjfhd", "çlasdhaklfhd");
             //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             //mGoogleMap.setIndoorEnabled(true);
 
@@ -89,11 +91,11 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
     @Override
     public void onPause() {
         super.onPause();
-        mGoogleMap = null;
+        //mGoogleMap = null;
 
         //stop location updates when Activity is no longer active
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        if (mGoogleApiClientNav != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClientNav, this);
 
         }
     }
@@ -115,13 +117,13 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mGoogleMap = null;
-        mGoogleMap = googleMap;
+        //mGoogleMap = null;
+        mGoogleMapNav = googleMap;
 
         //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         //mGoogleMap.setIndoorEnabled(true);
-        if (mGoogleMap != null) {
-            mGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+        if (mGoogleMapNav != null) {
+            mGoogleMapNav.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng latLng) {
                     Navigation.this.setMarker("Local", latLng.latitude, latLng.longitude);
@@ -139,31 +141,31 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
         }
 
 
-        mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        mGoogleMap.setIndoorEnabled(true);
+        mGoogleMapNav.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mGoogleMapNav.setIndoorEnabled(true);
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
                 buildGoogleApiClient();
-                mGoogleMap.setMyLocationEnabled(true);
+                mGoogleMapNav.setMyLocationEnabled(true);
             }
         } else {
             buildGoogleApiClient();
-            mGoogleMap.setMyLocationEnabled(true);
+            mGoogleMapNav.setMyLocationEnabled(true);
         }
         //Log.d("location", MainActivity.location);
         navigation(MainActivity.location);
     }
 
     protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+        mGoogleApiClientNav = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        mGoogleApiClient.connect();
+        mGoogleApiClientNav.connect();
     }
 
     @Override
@@ -175,18 +177,18 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClientNav, mLocationRequest, this);
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        mGoogleMap = null;
+        mGoogleMapNav = null;
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        mGoogleMap=null;
+        mGoogleMapNav=null;
     }
 
     @Override
@@ -201,12 +203,12 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
                 .zoom(21)                   // Sets the zoom
                 .tilt(60)                   // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
-        mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mGoogleMapNav.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
 
         //stop location updates
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        if (mGoogleApiClientNav != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClientNav, this);
         }
     }
 
@@ -260,10 +262,10 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
                             Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
 
-                        if (mGoogleApiClient == null) {
+                        if (mGoogleApiClientNav == null) {
                             buildGoogleApiClient();
                         }
-                        mGoogleMap.setMyLocationEnabled(true);
+                        mGoogleMapNav.setMyLocationEnabled(true);
                     }
 
                 } else {
@@ -318,7 +320,7 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
                 .snippet("I am here"); //something added to add more info
 
 
-        marker = mGoogleMap.addMarker(options);
+        marker = mGoogleMapNav.addMarker(options);
 
     }
 
@@ -370,7 +372,7 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
                 .color(Color.GREEN);
 
         // Get back the mutable Polyline
-        Polyline mPolyLine = mGoogleMap.addPolyline(linePath);
+        Polyline mPolyLine = mGoogleMapNav.addPolyline(linePath);
 
     }
 
@@ -421,9 +423,17 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
     public void exit(View view){
         //when navigation is over
         //mPolyLine.setVisible(false);
-        mGoogleMap = null;
+        mGoogleMapNav = null;
         Intent j = new Intent(this, MainActivity.class);
+        j.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        //i.putExtra("location", locationMessage);
+        //send String to navigate to room number
+       /* if(location!=null && !location.isEmpty()){
+
+            Toast.makeText(this, "Starting navigation to "+location, Toast.LENGTH_LONG).show();
+        }*/
         startActivity(j);
+        finish();
         //this.finish();
     }
 }
