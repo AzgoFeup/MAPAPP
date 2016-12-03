@@ -75,7 +75,7 @@ public class Navigation extends AppCompatActivity implements OnMapReadyCallback,
             }
             Toast.makeText(this, "Connected!!", Toast.LENGTH_LONG).show();
 
-            mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_nav);
+            mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             mapFrag.getMapAsync(this);
             //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             //mGoogleMap.setIndoorEnabled(true);

@@ -37,7 +37,7 @@
             android:layout_height="match_parent"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             tools:context="com.example.app.MapLocationActivity"
-            android:id="@+id/map_nav"
+            android:id="@+id/map"
             />
 
 
