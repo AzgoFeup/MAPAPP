@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:android2="http://schemas.android.com/apk/res/android"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:weightSum="1">
+    android:layout_height="match_parent">
 
     <android.support.v7.widget.Toolbar
         android:layout_width="match_parent"
@@ -12,6 +14,8 @@
         android:theme="?attr/actionBarTheme"
         android:minHeight="?attr/actionBarSize"
         android:id="@+id/toolbar2" />
+
+    <!--Cabeçalho-->
 
     <Button
         android:layout_width="11dp"
@@ -31,32 +35,83 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="7dp"
-        android:id="@+id/history_text"
+        android:id="@+id/settings_text"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         android:layout_marginStart="21dp"
         android:textColor="@color/cardview_light_background"
         android:layout_toEndOf="@+id/back_arrow" />
 
-    <Button android:id="@+id/myButton"
+    <!-- Escala -->
+
+    <Button android:id="@+id/scaleButton"
         android:background="@drawable/scale_onoff"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEndt="100dp"
-        android:layout_marginStart="250dp"
-        android:layout_marginTop="100dp"
-        />
+        android:layout_marginStart="230dp"
+        android:layout_marginTop="100dp" />
 
     <TextView
         android:text="@string/scale"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="100dp"
         android:id="@+id/scale"
         android:fontFamily="sans-serif"
-        android:textSize="40sp"
-        android:lineSpacingExtra="10sp" />
+        android:textSize="25sp"
+        android:lineSpacingExtra="10sp"
+        android:layout_alignTop="@+id/scaleButton"
+        android:layout_alignStart="@+id/settings_text" />
 
+    <!-- Vibração -->
 
+    <Button android:id="@+id/vibratingButton"
+        android:background="@drawable/scale_onoff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/scaleButton"
+        android:layout_alignStart="@+id/scaleButton" />
+
+    <TextView
+        android:text="@string/vibration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/vibrating"
+        android:fontFamily="sans-serif"
+        android:textSize="25sp"
+        android:lineSpacingExtra="10sp"
+        android:layout_alignBaseline="@+id/vibratingButton"
+        android:layout_alignBottom="@+id/vibratingButton"
+        android:layout_toEndOf="@+id/back_arrow" />
+
+    <!-- Voz -->
+
+    <Button android:id="@+id/voiceButton"
+        android:background="@drawable/scale_onoff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/vibratingButton"
+        android:layout_alignStart="@+id/vibratingButton"
+        android:layout_marginTop="28dp" />
+
+    <TextView
+        android:text="@string/voice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/voice"
+        android:fontFamily="sans-serif"
+        android:textSize="25sp"
+        android:lineSpacingExtra="10sp"
+        android:layout_alignTop="@+id/voiceButton"
+        android:layout_alignStart="@+id/scale" />
+
+    <!-- Limpar Historico-->
+
+    <Button android:id="@+id/cleanButton"
+        android:text="@string/clean"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="56dp"
+        android:layout_below="@+id/voiceButton"
+        android:layout_alignStart="@+id/vibrating" />
 
 </RelativeLayout>
