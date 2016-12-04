@@ -5,8 +5,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/login">
+    android:layout_height="match_parent">
 
     <android.support.v7.widget.Toolbar
         android:layout_width="match_parent"
@@ -44,27 +43,27 @@
 
     <!-- Texto -->
 
-    <ImageView
-        android:id="@+id/imageView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginEnd="30dp"
-        android:src="@drawable/login_logo" />
-
-
     <TextView
         android:text="@string/aboutText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="270dp"
+        android:layout_marginTop="280dp"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
         android:id="@+id/aboutText"
         android:textSize="20sp"
         android:fontFamily="sans-serif-condensed"
-        android:textColor="@color/cardview_light_background"
         />
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:src="@drawable/LOGO"
+        android:layout_alignBottom="@+id/aboutText"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="72dp" />
 
 </RelativeLayout>
