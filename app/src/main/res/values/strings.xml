@@ -17,4 +17,8 @@
     <string name="voice">Voice</string>
     <string name="clean">Clean History</string>
     <string name="settings">SETTINGS</string>
+    <string name="about">ABOUT</string>
+    <string name="aboutText"> AZGO is the app to help navigate inside big new buildings! You can
+        meet your friends or play stalker and follow them around.
+    Developed by a team of experts from the University of Porto</string>
 </resources>
