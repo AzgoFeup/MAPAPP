@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,18 +34,22 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
-
+    PolylineOptions linePath = new PolylineOptions();
     GoogleMap mGoogleMap;
     SupportMapFragment mapFrag;
     static LocationRequest mLocationRequest;
@@ -52,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Marker mCurrentLocationMarker;
     static String location;
     static Location sendLastLocation;
+    Polyline mPolyLine;
+
 
 
 
@@ -231,7 +239,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             buildGoogleApiClient();
             mGoogleMap.setMyLocationEnabled(true);
         }
+        final Button testButton = (Button) findViewById(R.id.startActivityButton);
+        testButton.setTag(1);
+        testButton.setText("Navigate Here");
+        testButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                final int status = (Integer) v.getTag();
+                if(status == 1){
+                    navigation(v);
+                    testButton.setText("Stop Navigation");
+
+                    v.setTag(0);
+                } else {
+                    testButton.setText("Navigate Here");
+                    stopNavigation(mLastLocation);
+                    v.setTag(1);
+                }
+            }
+        });
     }
+
 
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -277,22 +305,144 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void navigation (View view) throws IOException{
+    public void navigation (View view){
         final EditText et = (EditText) findViewById(R.id.editText);
         location = et.getText().toString();
-        sendLastLocation = mLastLocation;
-        Intent i = new Intent(this, Navigation.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PolylineOptions linePath = new PolylineOptions();
+        //mLastLocation = location;
+        //Get map on navigation mode
+        LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        // Construct a CameraPosition focusing on current position and animate the camera to that position.
+        //change camera view on current user's location to start navigation
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(latLng)      // Sets the center of the map to Mountain View
+                .zoom(21)                   // Sets the zoom
+                .tilt(60)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+        Graph.Node searchNode = null;
+        for(Graph.Node no : nodes){
+            if(no.getLabel().equals(location)) {
+                searchNode = no;
+                break;
+            }
+        }
+        startNavigationTo(searchNode, mLastLocation);
+
+
+        //Intent i = new Intent(this, Navigation.class);
+        //i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
         //i.putExtra("location", locationMessage);
         //send String to navigate to room number
        /* if(location!=null && !location.isEmpty()){
 
             Toast.makeText(this, "Starting navigation to "+location, Toast.LENGTH_LONG).show();
         }*/
-        startActivity(i);
-        finish();
+        //startActivity(i);
+        //finish();
         //location.equals(null);
 
+    }
+
+    public void startNavigationTo(Graph.Node searchNode, Location mLastLocation){
+
+        //calculate closest Node to mLastLocation
+        //mGoogleMap.UiSettings.setMapToolbarEnabled(false);
+        LinkedList<Graph.Node> caminho = new LinkedList<>();
+        List<Graph.Node> nos = grafo.getListNodes();
+        Graph.Node closestNode;
+        closestNode = findClosestNode(mLastLocation.getLatitude(), mLastLocation.getLongitude(), nos);
+        Graph.Node indexSource = grafo.getNode(closestNode.getIndex());
+
+
+        //calculate shortest path from firstNode to searchNode
+        Graph.Node indexDest= grafo.getNode(searchNode.getIndex());
+        double result = MatrixGraphAlgorithms.shortestPath(adj, grafo, indexSource, indexDest, caminho);
+        //shortest path is on caminho
+        //draw path on Google Maps
+        // Instantiates a new Polyline object and adds points to define the navigation path
+
+        linePath.add(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()));
+        /*listIter = myList.listIterator(myList.size());
+        while (listIter.hasPrevious()) {
+            String prev = listIter.previous();
+            // Do something with prev here
+        }*/
+
+        for(Graph.Node no : caminho){
+            linePath.add(new LatLng(no.getLatitude(), no.getLongitude()));
+        }
+
+        //add extra options
+        linePath.width(25)
+                .geodesic(false)
+                .color(Color.GREEN);
+
+        // Get back the mutable Polyline
+        mPolyLine = mGoogleMap.addPolyline(linePath);
+
+    }
+
+    public static Graph.Node findClosestNode(double latitude, double longitude, List<Graph.Node> nodes){
+        Graph.Node closestNode = null;
+        double[][] points = new double[69][2];
+        double shortestDistance=0;
+        double distance=0;
+
+        //enter x,y coords into the 69x2 table points[][]
+        for(Graph.Node no : nodes){
+            points[no.getIndex()][0] = no.getLatitude();
+            points[no.getIndex()][1] = no.getLongitude();
+        }
+
+        //get the distance between the point in the ith row and the (m+1)th row
+        //and check if it's shorter than the distance between 0th and 1st
+        for(Graph.Node no : nodes)
+        {
+            //use m=i rather than 0 to avoid duplicate computations
+            for (int m=no.getIndex(); m<69-1;m++)
+            {
+                double dx = points[no.getIndex()][0] - latitude;
+                double dy = points[no.getIndex()][1] - longitude;
+                distance = Math.sqrt(dx*dx + dy*dy);
+
+                //set shortestDistance and closestPoints to the first iteration
+                if (m == 0 && no.getIndex() == 0)
+                {
+                    shortestDistance = distance;
+                    closestNode = no;
+                }
+                //then check if any further iterations have shorter distances
+                else if (distance < shortestDistance)
+                {
+                    shortestDistance = distance;
+                    closestNode = no;
+                }
+            }
+        }
+        //search the closest Node on shortest path
+
+        return closestNode;
+    }
+
+    public void stopNavigation(Location mLastLocation){
+        String name = "I am here";
+        //Place current location marker
+        mPolyLine.remove();
+        LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        setMarker(name, mLastLocation.getLatitude(), mLastLocation.getLongitude());
+
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(latLng)      // Sets the center of the map to Mountain View
+                .zoom((float)19.08)                   // Sets the zoom
+                .tilt(0)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        //CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, (float) 19.08);
+        //move map camera
+        //mGoogleMap.moveCamera(cameraUpdate);
     }
 
     Circle circle;
@@ -407,14 +557,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mCurrentLocationMarker != null) {
             mCurrentLocationMarker.remove();
         }
-
+        String name = "I am here";
         //Place current location marker
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-        mCurrentLocationMarker = mGoogleMap.addMarker(markerOptions);
+        setMarker(name, mLastLocation.getLatitude(), mLastLocation.getLongitude());
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, (float) 19.08);
         //move map camera
         mGoogleMap.moveCamera(cameraUpdate);

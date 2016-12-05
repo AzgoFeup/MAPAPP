@@ -47,11 +47,12 @@
         android:layout_width="150sp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:onClick="navigation"
-        android:text="@string/nav"
         android:layout_below="@+id/editText"
         android:layout_toEndOf="@+id/button"
         android:layout_marginStart="30dp" />
+        <!--android:onClick="navigation"-->
+        <!--android:text="@string/nav"-->
+
 
 
 </RelativeLayout>
