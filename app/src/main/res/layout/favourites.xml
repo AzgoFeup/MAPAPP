@@ -12,17 +12,29 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true" />
 
+    <Button
+        android:layout_width="11dp"
+        android:layout_height="20dp"
+        android:id="@+id/back_arrow"
+        android:src="@drawable/white_arrow"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/white_arrow"
+        android:layout_alignParentStart="true" />
+
     <TextView
         android:text="FAVOURITES"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="7dp"
         android:id="@+id/favourites_text"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-        android:layout_marginStart="53dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginStart="21dp"
         android:textColor="@color/cardview_light_background"
-        android:layout_alignBottom="@+id/favourites_toolbar"
-        android:layout_alignParentStart="true" />
+        android:layout_toEndOf="@+id/back_arrow" />
 
     <Button
         android:text="My Friends"
