@@ -2,12 +2,14 @@ package com.azgo.mapapp;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
@@ -553,6 +555,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location location) {
+        /*locManager = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+        locManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER, 1000, 1, locListener);
+
+        mobileLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);*/
+
         mLastLocation = location;
         if (mCurrentLocationMarker != null) {
             mCurrentLocationMarker.remove();
