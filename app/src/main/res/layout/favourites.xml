@@ -20,7 +20,7 @@
         android:adjustViewBounds="true"
         android:cropToPadding="false"
         android:scaleType="fitXY"
-        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
         android:layout_marginTop="10dp"
         android:background="@drawable/white_arrow"
         android:layout_alignParentStart="true" />
@@ -38,7 +38,7 @@
 
     <Button
         android:text="My Friends"
-        android:layout_width="wrap_content"
+        android:layout_width="110dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="37dp"
         android:id="@+id/my_friends"
@@ -48,7 +48,7 @@
 
     <Button
         android:text="My Places"
-        android:layout_width="wrap_content"
+        android:layout_width="110dp"
         android:layout_height="wrap_content"
         android:id="@+id/my_places"
         android:layout_marginTop="91dp"
@@ -56,5 +56,22 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true" />
 
+    <View
+        android:id="@+id/square_1"
+        android:background="@drawable/square_favourites"
+        android:layout_below="@+id/my_places"
+        android:layout_height="110dp"
+        android:layout_width="110dp"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="23dp" />
+
+    <View
+        android:id="@+id/square_2"
+        android:background="@drawable/square_favourites"
+        android:layout_below="@+id/my_friends"
+        android:layout_height="110dp"
+        android:layout_width="110dp"
+        android:layout_marginTop="23dp"
+        android:layout_alignStart="@+id/my_friends" />
 
 </RelativeLayout>
