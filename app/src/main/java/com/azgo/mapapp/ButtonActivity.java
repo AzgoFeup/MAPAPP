@@ -5,12 +5,10 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Button;
 
+
+
 import com.google.android.gms.wallet.fragment.SupportWalletFragment;
 
-
-/**
- * Created by catar on 05/12/2016.
- */
 
 public class ButtonActivity extends Button implements View.OnClickListener {
 
@@ -33,7 +31,9 @@ public class ButtonActivity extends Button implements View.OnClickListener {
         mStateIndex = (mStateIndex+1) % mStates.length;
 
         // notify listener
-        if(mListener != null) mListener.onStateChanged(mStates[mStateIndex]);
+        if(mListener != null) {
+            mListener.onStateChanged(mStates[mStateIndex]);
+        }
     }
 
     @Override
