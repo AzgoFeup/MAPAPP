@@ -86,10 +86,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Eliminate this
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-               // new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             } else {
                 new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-               // new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         }
         //till were
 
@@ -690,49 +690,50 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 publishProgress(mTcpClient.array.remove());
                 mTcpClient.messageAdded = false;
             }
-
             return null;
         }
 
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
-
             //in the arrayList we add the messaged received from server
             Log.d("onProgress", values[0]);
             Message = values[0];
             messageReceived = true;
             // notify the adapter that the data set has changed. This means that new message received
             // from server was added to the list
-
-
         }
     }
 
     public class backgroundSending extends AsyncTask<String, String, String> {
 
-
         @Override
         protected String doInBackground(String... message) {
 
-            while (mTcpClient == null && mLastLocation == null) ;
-
-
-            while (true) {
+            long startTime = System.currentTimeMillis();
+            while(mTcpClient != null && (System.currentTimeMillis()-startTime)<20000) {
+            //Envia coordenadas durante 20 seg. O ideal é enviar até ser feito o logout.
                 try {
-                    Log.e("AQUI", "AQUI");
-                    if(mLastLocation != null) {
-                    mTcpClient.sendMessage(Double.toString(mLastLocation.getLatitude()));
+                    Double latitude = 41.7777777; //mLastLocation.getLatitude();
+                    Double longitude = 50.9999999; //mLastLocation.getLongitude();
+                    String coordenadas = Double.toString(latitude)+"$"+Double.toString(longitude);
 
-                        Log.e("ASYNC", Double.toString(mLastLocation.getLatitude()));
+                    //if(mLastLocation != null) {
+                    if (coordenadas != "$") {
+                        mTcpClient.sendMessage(coordenadas);
+                        //Log.e("ASYNC", Double.toString(mLastLocation.getLatitude()));
                     }
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
+                    else {
+                        Log.e("MA_sendMessage", "Coordenadas não enviadas");
+                    }
+                    Thread.sleep(2000);
+
+                }
+                catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
             }
-            //TODO: Desligar ser passar muito tempo ou logout
+            return null;
         }
     }
 }

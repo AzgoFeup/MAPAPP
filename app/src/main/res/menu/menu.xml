@@ -23,6 +23,6 @@
         android:title="@string/info"/>
     <item
         android:id="@+id/logout"
-        android:title="@string/logout"/>
+        android:title="@string/logout" />
 
 </menu>
