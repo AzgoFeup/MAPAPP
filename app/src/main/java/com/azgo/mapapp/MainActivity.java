@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
@@ -24,6 +25,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -46,6 +48,7 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,14 +57,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     PolylineOptions linePath = new PolylineOptions();
     GoogleMap mGoogleMap;
     SupportMapFragment mapFrag;
-    static LocationRequest mLocationRequest;
+    private LocationRequest mLocationRequest;
     GoogleApiClient mGoogleApiClient;
-    static Location mLastLocation;
+    Location mLastLocation;
     Marker mCurrentLocationMarker;
-    static String location;
-    static Location sendLastLocation;
+    String location;
+    Location sendLastLocation;
     Polyline mPolyLine;
-
+    private LocationManager locationManager;
+    Location location_nav;
 
 
 
@@ -81,15 +85,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        // Create the LocationRequest object
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(1000)        // 1 second, in milliseconds
+                .setFastestInterval(1000) // 1 second, in milliseconds
+                .setSmallestDisplacement(1); //1 meter
+        /*createBuilder();
+        createLocationRequest();*/
         mGoogleMap = null;
 
         //Eliminate this
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-            } else {
-                new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+        } else {
+            new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         }
         //till were
 
@@ -108,6 +122,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             //No Google Maps Layout
         }
+
+        Location location = locationManager.getLastKnownLocation(provider);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.v("resuming", "Resuming");
+
+        //locationManager.requestLocationUpdates(provider, 400, 1, (android.location.LocationListener) this);
     }
 
     @Override
@@ -121,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
     }
+
 
     public boolean googleServicesAvailable() {
         GoogleApiAvailability api = GoogleApiAvailability.getInstance();
@@ -153,8 +178,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
             //set markers on all the rooms
-            for(Graph.Node no : nodes){
-                if(no.getIndex()<=35)
+            for (Graph.Node no : nodes) {
+                if (no.getIndex() <= 35)
                     MainActivity.this.setMarker(no.getLabel(), no.getLatitude(), no.getLongitude());
                 else
                     break;
@@ -189,8 +214,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     marker.setTitle(add.getLocality());
                     marker.showInfoWindow();
                     //localizacao = marker.getTitle();
-
-
 
 
                 }
@@ -244,11 +267,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         final Button testButton = (Button) findViewById(R.id.startActivityButton);
         testButton.setTag(1);
         testButton.setText("Navigate Here");
-        testButton.setOnClickListener(new View.OnClickListener(){
+        testButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
                 final int status = (Integer) v.getTag();
-                if(status == 1){
+                if (status == 1) {
                     navigation(v);
                     testButton.setText("Stop Navigation");
 
@@ -290,8 +313,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //devolve a localização
         //String locality = address.getLocality();
         //set markers on all the rooms
-        for(Graph.Node no : nodes){
-            if(no.getLabel().equals(location)) {
+        for (Graph.Node no : nodes) {
+            if (no.getLabel().equals(location)) {
                 searchNode = no;
                 break;
             }
@@ -307,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void navigation (View view){
+    public void navigation(View view) {
         final EditText et = (EditText) findViewById(R.id.editText);
         location = et.getText().toString();
         PolylineOptions linePath = new PolylineOptions();
@@ -324,8 +347,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
         Graph.Node searchNode = null;
-        for(Graph.Node no : nodes){
-            if(no.getLabel().equals(location)) {
+        for (Graph.Node no : nodes) {
+            if (no.getLabel().equals(location)) {
                 searchNode = no;
                 break;
             }
@@ -347,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void startNavigationTo(Graph.Node searchNode, Location mLastLocation){
+    public void startNavigationTo(Graph.Node searchNode, Location mLastLocation) {
 
         //calculate closest Node to mLastLocation
         //mGoogleMap.UiSettings.setMapToolbarEnabled(false);
@@ -359,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         //calculate shortest path from firstNode to searchNode
-        Graph.Node indexDest= grafo.getNode(searchNode.getIndex());
+        Graph.Node indexDest = grafo.getNode(searchNode.getIndex());
         double result = MatrixGraphAlgorithms.shortestPath(adj, grafo, indexSource, indexDest, caminho);
         //shortest path is on caminho
         //draw path on Google Maps
@@ -372,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Do something with prev here
         }*/
 
-        for(Graph.Node no : caminho){
+        for (Graph.Node no : caminho) {
             linePath.add(new LatLng(no.getLatitude(), no.getLongitude()));
         }
 
@@ -386,38 +409,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public static Graph.Node findClosestNode(double latitude, double longitude, List<Graph.Node> nodes){
+    public static Graph.Node findClosestNode(double latitude, double longitude, List<Graph.Node> nodes) {
         Graph.Node closestNode = null;
         double[][] points = new double[69][2];
-        double shortestDistance=0;
-        double distance=0;
+        double shortestDistance = 0;
+        double distance = 0;
 
         //enter x,y coords into the 69x2 table points[][]
-        for(Graph.Node no : nodes){
+        for (Graph.Node no : nodes) {
             points[no.getIndex()][0] = no.getLatitude();
             points[no.getIndex()][1] = no.getLongitude();
         }
 
         //get the distance between the point in the ith row and the (m+1)th row
         //and check if it's shorter than the distance between 0th and 1st
-        for(Graph.Node no : nodes)
-        {
+        for (Graph.Node no : nodes) {
             //use m=i rather than 0 to avoid duplicate computations
-            for (int m=no.getIndex(); m<69-1;m++)
-            {
+            for (int m = no.getIndex(); m < 69 - 1; m++) {
                 double dx = points[no.getIndex()][0] - latitude;
                 double dy = points[no.getIndex()][1] - longitude;
-                distance = Math.sqrt(dx*dx + dy*dy);
+                distance = Math.sqrt(dx * dx + dy * dy);
 
                 //set shortestDistance and closestPoints to the first iteration
-                if (m == 0 && no.getIndex() == 0)
-                {
+                if (m == 0 && no.getIndex() == 0) {
                     shortestDistance = distance;
                     closestNode = no;
                 }
                 //then check if any further iterations have shorter distances
-                else if (distance < shortestDistance)
-                {
+                else if (distance < shortestDistance) {
                     shortestDistance = distance;
                     closestNode = no;
                 }
@@ -428,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return closestNode;
     }
 
-    public void stopNavigation(Location mLastLocation){
+    public void stopNavigation(Location mLastLocation) {
         String name = "I am here";
         //Place current location marker
         mPolyLine.remove();
@@ -438,7 +457,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(latLng)      // Sets the center of the map to Mountain View
-                .zoom((float)19.08)                   // Sets the zoom
+                .zoom((float) 19.08)                   // Sets the zoom
                 .tilt(0)                   // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
         mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
@@ -451,13 +470,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setMarker(final String locality, double lat, double lng) {
         BitmapDescriptor icon;
-        switch(locality) {
+        switch (locality) {
             case "B001":
             case "B002":
             case "B003":
                 icon = BitmapDescriptorFactory.fromResource(R.drawable.auditorio);
                 break;
-            default :
+            default:
                 if (locality.charAt(0) == 'B') // Temporário até adicionar novos edificios ao mapa
                     icon = BitmapDescriptorFactory.fromResource(R.drawable.sala);
                 else
@@ -526,23 +545,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000);
-        mLocationRequest.setFastestInterval(1000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED){
+            location_nav = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
+        if (location_nav == null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+        else {
+            handleNewLocation(location_nav);
+        };
+        //mLocationRequest = new LocationRequest();
+        //mLocationRequest.setInterval(1000);
+        //mLocationRequest.setFastestInterval(1000);
+        //mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        /*if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
+        }*/
+        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                //mGoogleApiClient);
+    }
+    private void handleNewLocation(Location location) {
+        Log.d("localização", location.toString());
+        double currentLatitude = location.getLatitude();
+        double currentLongitude = location.getLongitude();
+        LatLng latLng = new LatLng(currentLatitude, currentLongitude);
+        MarkerOptions options = new MarkerOptions()
+                .position(latLng)
+                .title("I am here!");
+        mGoogleMap.addMarker(options);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, (float) 19.08);
+        //move map camera
+        mGoogleMap.moveCamera(cameraUpdate);
     }
 
-    /*protected void createLocationRequest(){
-        LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }*/
     @Override
     public void onConnectionSuspended(int i) {
 
@@ -555,13 +594,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location location) {
+        handleNewLocation(location);
         /*locManager = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
         locManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER, 1000, 1, locListener);
 
         mobileLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);*/
 
-        mLastLocation = location;
+        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        /*mLastLocation = location;
         if (mCurrentLocationMarker != null) {
             mCurrentLocationMarker.remove();
         }
@@ -576,7 +617,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //stop location updates
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
+        }*/
     }
 
 
