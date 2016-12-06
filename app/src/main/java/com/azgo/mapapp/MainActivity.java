@@ -47,6 +47,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.vision.barcode.Barcode;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
@@ -61,11 +62,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     Marker mCurrentLocationMarker;
-    String location;
+    //String location;
     Location sendLastLocation;
     Polyline mPolyLine;
     private LocationManager locationManager;
     Location location_nav;
+    Marker marcador;
 
 
 
@@ -91,8 +93,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(1000)        // 1 second, in milliseconds
-                .setFastestInterval(1000) // 1 second, in milliseconds
-                .setSmallestDisplacement(1); //1 meter
+                .setFastestInterval(1000); // 1 second, in milliseconds
+                //.setSmallestDisplacement(0); //1 meter
         /*createBuilder();
         createLocationRequest();*/
         mGoogleMap = null;
@@ -118,12 +120,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFrag.getMapAsync(this);
             //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             //mGoogleMap.setIndoorEnabled(true);
+            buildGoogleApiClient();
+
 
         } else {
             //No Google Maps Layout
         }
 
-        Location location = locationManager.getLastKnownLocation(provider);
+
     }
 
     @Override
@@ -332,7 +336,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void navigation(View view) {
         final EditText et = (EditText) findViewById(R.id.editText);
-        location = et.getText().toString();
+        String location = et.getText().toString();
         PolylineOptions linePath = new PolylineOptions();
         //mLastLocation = location;
         //Get map on navigation mode
@@ -555,7 +559,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         else {
             handleNewLocation(location_nav);
-        };
+        }
         //mLocationRequest = new LocationRequest();
         //mLocationRequest.setInterval(1000);
         //mLocationRequest.setFastestInterval(1000);
@@ -565,11 +569,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }*/
-        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                //mGoogleApiClient);
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if(mLastLocation != null){
+            //LatLng latitude_longitude = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            setMarker("Aqui", mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        }
+        //startLocationUpdates(); //função para requerer mais pedidos de localização
+    }
+
+    // Trigger new location updates at interval
+    protected void startLocationUpdates() {
+        // Create the location request
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(1000)
+                .setFastestInterval(1000);
+        // Request location updates
+       /* LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                mLocationRequest, this);*/ //está a dar erro!!
     }
     private void handleNewLocation(Location location) {
         Log.d("localização", location.toString());
+
         double currentLatitude = location.getLatitude();
         double currentLongitude = location.getLongitude();
         LatLng latLng = new LatLng(currentLatitude, currentLongitude);
@@ -594,15 +616,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location location) {
-        handleNewLocation(location);
+       // handleNewLocation(location);
         /*locManager = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
         locManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER, 1000, 1, locListener);
 
         mobileLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);*/
 
-        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        /*mLastLocation = location;
+       //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        mLastLocation = location;
         if (mCurrentLocationMarker != null) {
             mCurrentLocationMarker.remove();
         }
@@ -617,7 +639,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //stop location updates
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }*/
+        }
     }
 
 
