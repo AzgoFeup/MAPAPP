@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public TCPClient mTcpClient;
     private static boolean messageReceived;
     private static String Message;
+    boolean logoutPressed = false;
 
 
     @Override
@@ -123,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //No Google Maps Layout
         }
 
-        Location location = locationManager.getLastKnownLocation(provider);
+        //Location location = locationManager.getLastKnownLocation(provider);
     }
 
     @Override
@@ -529,6 +530,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case R.id.logout:
                 signOut();
+                logoutPressed = true;
                 break;
             case R.id.info:
                 goUserInfoPage();
@@ -723,13 +725,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //we create a TCPClient object and
             mTcpClient = TCPClient.getInstance();
 
-            while(mTcpClient.messageAdded == false);
+            while(mTcpClient != null) {
 
-            if(!mTcpClient.array.isEmpty()) {
-                Log.e("Async Task 2", "Recebido: " + mTcpClient.array.peek());
+                while (mTcpClient.messageAdded == false) ;
 
-                publishProgress(mTcpClient.array.remove());
-                mTcpClient.messageAdded = false;
+                if (!mTcpClient.array.isEmpty()) {
+                    Log.e("MainActivity", "AsyncTask Reception: " + mTcpClient.array.peek());
+
+                    publishProgress(mTcpClient.array.peek());
+                    mTcpClient.array.remove();
+                    mTcpClient.messageAdded = false;
+                } else {
+                    Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
+                }
             }
             return null;
         }
@@ -738,9 +746,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             //in the arrayList we add the messaged received from server
-            Log.d("onProgress", values[0]);
             Message = values[0];
             messageReceived = true;
+            Log.e("MainActivity", "onProgressUpdate: " + Message);
             // notify the adapter that the data set has changed. This means that new message received
             // from server was added to the list
         }
@@ -751,9 +759,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         protected String doInBackground(String... message) {
 
-            long startTime = System.currentTimeMillis();
-            while(mTcpClient != null && (System.currentTimeMillis()-startTime)<20000) {
+            while(mTcpClient == null);
+
+            //long startTime = System.currentTimeMillis();
+            //while((System.currentTimeMillis()-startTime)<20000) {
+            while(!logoutPressed) {
             //Envia coordenadas durante 20 seg. O ideal é enviar até ser feito o logout.
+
                 try {
                     Double latitude = 41.7777777; //mLastLocation.getLatitude();
                     Double longitude = 50.9999999; //mLastLocation.getLongitude();
@@ -765,7 +777,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         //Log.e("ASYNC", Double.toString(mLastLocation.getLatitude()));
                     }
                     else {
-                        Log.e("MA_sendMessage", "Coordenadas não enviadas");
+                        Log.e("MainActivity", "AsyncTask Sending: Coordenadas não enviadas");
                     }
                     Thread.sleep(2000);
 
@@ -774,6 +786,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     e.printStackTrace();
                 }
             }
+            logoutPressed = false;
             return null;
         }
     }
