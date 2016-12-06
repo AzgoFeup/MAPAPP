@@ -17,25 +17,24 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class TCPClient implements Runnable {
+class TCPClient implements Runnable {
 
     private String serverMessage;
-    public static final String SERVERIP = "192.168.50.138"; //TODO: pinguim.fe.up.pt dosen't work
-    public static final int SERVERPORT = 20502;
+    private static final String SERVERIP = "192.168.50.138"; //TODO: pinguim.fe.up.pt dosen't work
+    private static final int SERVERPORT = 20502;
     private boolean mRun = false;
-    public boolean messageAdded = false;
-    PrintWriter out;
-    BufferedReader in;
-    public static Queue<String> array;
+    boolean messageAdded = false;
+    private PrintWriter out;
+    static Queue<String> array;
 
     //TODO : FAZER ISTO MAIS FIAVEL
 
     private static TCPClient instance= null;
+
     /**
      *  Constructor of the class. OnMessagedReceived listens for the messages received from server
      */
-    public TCPClient() {
-
+    private TCPClient() {
     }
 
 
@@ -43,7 +42,7 @@ public class TCPClient implements Runnable {
      * Creates a new instance of this class.
      * @return The new instance.
      */
-    public static TCPClient getInstance() {
+    static TCPClient getInstance() {
         if (instance == null) {
             instance = new TCPClient();
             array = new LinkedList<>();
@@ -56,7 +55,7 @@ public class TCPClient implements Runnable {
      * Sends the message entered by client to the server
      * @param message text entered by client
      */
-    public void sendMessage(final String message){
+    void sendMessage(final String message){
         if (out != null && !out.checkError()) {
             Log.d("TCP Client", "S: Sending" + message);
 
@@ -76,6 +75,7 @@ public class TCPClient implements Runnable {
         mRun = false;
     }
 
+
     public void run() {
 
         mRun = true;
@@ -83,55 +83,47 @@ public class TCPClient implements Runnable {
         try {
 
             //here you must put your computer's IP address.
-            Log.e("TCP Client", "C: Connecting to "+ SERVERIP);
-            InetAddress serverAddr = InetAddress.getByName(SERVERIP);
+            Log.e("TCPClient", "run(): Connecting to "+ SERVERIP);
+            //InetAddress serverAddr = InetAddress.getByName(SERVERIP);
 
-            Log.e("TCP Client", "C: Connecting...");
+            Log.e("TCPClient", "run(): Connecting...");
             //create a socket to make the connection with the server
-            Socket socket = new Socket(serverAddr, SERVERPORT);
-
+            Socket socket = new Socket(SERVERIP, SERVERPORT);
             try {
-
                 //send the message to the server
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
-                Log.e("TCP Client", "C: Sent.");
-
-
+                Log.e("TCPClient", "run(): out created");
 
                 //receive the message which the server sends back
-                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                Log.e("TCP Client", "C: Done.");
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                Log.e("TCPClient", "run(): in created");
 
                 //in this while the client listens for the messages sent by the server
                 while (mRun) {
                     serverMessage = in.readLine();
-                    Log.d("TCP Client", "R: Received" + serverMessage);
+                    //Log.e("TCPClient", "run(): Received: " + serverMessage);
 
-                    if (serverMessage != null ) {
+                    if (serverMessage != null) {
                         //call the method messageReceived from MyActivity class
                         messageReceived(serverMessage);
                         messageAdded = true;
                     }
                     serverMessage = null;
-
                 }
-
-                Log.e("RESPONSE FROM SERVER", "S: Received Message: '" + serverMessage + "'");
-
             } catch (Exception e) {
-
-                Log.e("TCP", "S: Error", e);
+                Log.e("TCPClient", "run(): Error_1", e);
 
             } finally {
                 //the socket must be closed. It is not possible to reconnect to this socket
                 // after it is closed, which means a new socket instance has to be created.
-                Log.e("TCP", "CLOSING");
                 socket.close();
+                Log.e("TCPClient", "CLOSING");
+
             }
 
         } catch (Exception e) {
 
-            Log.e("TCP", "C: Error " + e, e);
+            Log.e("TCPClient", "run(): Error_2", e);
 
         }
 
@@ -139,9 +131,9 @@ public class TCPClient implements Runnable {
 
     //Declare the interface. The method messageReceived(String message) will must be implemented in the MyActivity
     //class at on asynckTask doInBackground
-        public void messageReceived(String message) {
-            Log.e("TCP", "messageReceived: "+ message);
-            array.add(message);
-        }
+    private void messageReceived(String message) {
+        Log.e("TCPClient", "messageReceived(): "+ message);
+        array.add(message);
+    }
 
 }

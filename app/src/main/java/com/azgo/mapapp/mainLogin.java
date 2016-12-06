@@ -2,37 +2,25 @@ package com.azgo.mapapp;
 
 
 
-import android.accounts.AccountManager;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.support.annotation.IntegerRes;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
-
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
-
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
-
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -40,22 +28,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-
-
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
 import com.google.firebase.auth.GoogleAuthProvider;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 
 public class mainLogin extends AppCompatActivity implements
         View.OnClickListener
@@ -147,11 +125,11 @@ public class mainLogin extends AppCompatActivity implements
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // User is signed in
-                    Log.e(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                    Log.e(TAG, "onAuthStateChanged(): signed_in: userID: " + user.getUid());
                     goMainScreen();
                 } else {
                     // User is signed out
-                    Log.e(TAG, "onAuthStateChanged:signed_out");
+                    Log.e(TAG, "onAuthStateChanged(): signed_out");
                 }
                 // ...
             }
@@ -189,7 +167,7 @@ public class mainLogin extends AppCompatActivity implements
                 // [END_EXCLUDE]
             }
         });
-    // [END initialize_fblogin]
+        // [END initialize_fblogin]
 
         /**
          *  GMAIL
@@ -248,27 +226,27 @@ public class mainLogin extends AppCompatActivity implements
     // [END auth_with_facebook]
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
-        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+        Log.e(TAG, "firebaseAuthWithGoogle:" + acct.getId());
 
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+                        Log.e(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
 
                         // If sign in fails, display a message to the user. If sign in succeeds
                         // the auth state listener will be notified and logic to handle the
                         // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
-                            Log.w(TAG, "signInWithCredential", task.getException());
+                            Log.e(TAG, "signInWithCredential", task.getException());
                             Toast.makeText(mainLogin.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
 
                         }
 
                         else {
-                            Log.e(TAG, "LOGINGOGGLE: aqui");
+                            Log.e(TAG, "LOGINGOGGLE: DONE");
                             goMainScreen();
                         }
                         // ...
@@ -281,7 +259,7 @@ public class mainLogin extends AppCompatActivity implements
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.e(TAG, "onActivityResult "+requestCode);
+        //Log.e(TAG, "onActivityResult() "+requestCode);
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
@@ -293,7 +271,7 @@ public class mainLogin extends AppCompatActivity implements
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
-
+                Log.e(TAG, "ACCOUNT: "+ account.toString());
             } else {
                 Log.e(TAG, "LOGINGOOGLE: False");
                 Toast.makeText(mainLogin.this, "Authentication failed.",
@@ -303,30 +281,33 @@ public class mainLogin extends AppCompatActivity implements
         }else{
             //If not request code is RC_SIGN_IN it must be facebook
             mCallbackManager.onActivityResult(requestCode, resultCode, data);
-}
+        }
     }
 
 
     private void signIn() {
-        Log.e(TAG, "SIGNIN:GOOGLE");
+        Log.e(TAG, "signIn(): GOOGLE");
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
+        Log.e("mainLogin ","signIn() END");
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        Log.e(TAG, "Start");
+        Log.e("mainLogin", "onStart()");
         mAuth.addAuthStateListener(mAuthListener);
-        Log.e(TAG, "Start: END");
+        Log.e("mainLogin", "onStart() END");
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        Log.e("mainLogin","onStop()");
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+        Log.e("mainLogin","onStop() END");
     }
 
 
@@ -345,10 +326,10 @@ public class mainLogin extends AppCompatActivity implements
 
     private void goMainScreen() {
 
-        Log.e("login", "Main");
+        Log.e("mainLogin", "goMainScreen()");
 
         if(mTcpClient == null)  {
-            Log.e("mTCPClient", "Not on");
+            Log.e("mainLogin", "goMainScreen(): mTcpClient == null");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 new connectTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             } else {
@@ -356,8 +337,7 @@ public class mainLogin extends AppCompatActivity implements
             }
         }
 
-        Log.e("login", "Connecting...");
-
+        Log.e("mainLogin", "Connecting...");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ) {
             new login().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         } else {
@@ -375,9 +355,10 @@ public class mainLogin extends AppCompatActivity implements
             //we create a TCPClient object and
             mTcpClient = TCPClient.getInstance();
 
-            while(mTcpClient.messageAdded == false);
+            //espera enquanto nao recebe nada
+            while(!mTcpClient.messageAdded);
 
-            Log.e("Async Task", "Recebido: " + mTcpClient.array.peek());
+            Log.e("mainLogin", "connectTask: mTcpClient.array= " + mTcpClient.array.peek());
 
             publishProgress(mTcpClient.array.remove());
             mTcpClient.messageAdded = false;
@@ -406,21 +387,23 @@ public class mainLogin extends AppCompatActivity implements
         @Override
         protected String doInBackground(String... message) {
 
-            Log.e("login", "Entering while");
+            //Log.e("mainLogin", "login(): Entering while");
             while(true){
-                Log.e("login", "Trying to send login");
+                Log.e("mainLogin", "login()");
                 if(mTcpClient == null){
                     return "False";
                 }
 
+                //TODO: O que enviar para o server?
                 mTcpClient.sendMessage("Login@delfim");
 
-                while(messageReceived != true);
-
+                // Waits for the server response
+                while(!messageReceived);
                 messageReceived = false;
+
+                //Login Done?
                 if(Message.equals("ok")) break;
             }
-
 
             return "True";
         }
@@ -436,22 +419,17 @@ public class mainLogin extends AppCompatActivity implements
         protected void onPostExecute(String value) {
             super.onPostExecute(value);
 
-
-
             if(value.equals("True")) {
                 this.dialog.dismiss();
                 Intent intent = new Intent(mainLogin.this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
-                if(this.isCancelled() ==true) cancel(true);
+                if(this.isCancelled()) cancel(true);
             }
             else {
-
+                Log.e("mainLogin", "login() mTcpClient == null");
             }
         }
-
-
     }
 }
-
 
