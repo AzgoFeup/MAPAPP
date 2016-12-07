@@ -47,7 +47,6 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.vision.barcode.Barcode;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
@@ -60,14 +59,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     SupportMapFragment mapFrag;
     private LocationRequest mLocationRequest;
     GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
+    private Location mLastLocation;
     Marker mCurrentLocationMarker;
-    //String location;
+    String location;
     Location sendLastLocation;
     Polyline mPolyLine;
     private LocationManager locationManager;
     Location location_nav;
-    Marker marcador;
 
 
 
@@ -81,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public TCPClient mTcpClient;
     private static boolean messageReceived;
     private static String Message;
+    boolean logoutPressed = false;
 
 
     @Override
@@ -93,8 +92,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(1000)        // 1 second, in milliseconds
-                .setFastestInterval(1000); // 1 second, in milliseconds
-                //.setSmallestDisplacement(0); //1 meter
+                .setFastestInterval(1000) // 1 second, in milliseconds
+                .setSmallestDisplacement(1); //1 meter
         /*createBuilder();
         createLocationRequest();*/
         mGoogleMap = null;
@@ -120,14 +119,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFrag.getMapAsync(this);
             //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             //mGoogleMap.setIndoorEnabled(true);
-            buildGoogleApiClient();
-
 
         } else {
             //No Google Maps Layout
         }
 
-
+        //Location location = locationManager.getLastKnownLocation(provider);
     }
 
     @Override
@@ -336,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void navigation(View view) {
         final EditText et = (EditText) findViewById(R.id.editText);
-        String location = et.getText().toString();
+        location = et.getText().toString();
         PolylineOptions linePath = new PolylineOptions();
         //mLastLocation = location;
         //Get map on navigation mode
@@ -365,7 +362,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //i.putExtra("location", locationMessage);
         //send String to navigate to room number
        /* if(location!=null && !location.isEmpty()){
-
             Toast.makeText(this, "Starting navigation to "+location, Toast.LENGTH_LONG).show();
         }*/
         //startActivity(i);
@@ -533,6 +529,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case R.id.logout:
                 signOut();
+                logoutPressed = true;
                 break;
             case R.id.info:
                 goUserInfoPage();
@@ -552,14 +549,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED){
-            location_nav = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
         if (location_nav == null) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
         else {
-            handleNewLocation(location_nav);
-        }
+            handleNewLocation(mLastLocation);
+        };
         //mLocationRequest = new LocationRequest();
         //mLocationRequest.setInterval(1000);
         //mLocationRequest.setFastestInterval(1000);
@@ -569,29 +566,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }*/
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if(mLastLocation != null){
-            //LatLng latitude_longitude = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            setMarker("Aqui", mLastLocation.getLatitude(), mLastLocation.getLongitude());
-        }
-        //startLocationUpdates(); //função para requerer mais pedidos de localização
-    }
-
-    // Trigger new location updates at interval
-    protected void startLocationUpdates() {
-        // Create the location request
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(1000)
-                .setFastestInterval(1000);
-        // Request location updates
-       /* LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                mLocationRequest, this);*/ //está a dar erro!!
+        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+        //mGoogleApiClient);
     }
     private void handleNewLocation(Location location) {
         Log.d("localização", location.toString());
-
         double currentLatitude = location.getLatitude();
         double currentLongitude = location.getLongitude();
         LatLng latLng = new LatLng(currentLatitude, currentLongitude);
@@ -616,15 +595,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location location) {
-       // handleNewLocation(location);
+        handleNewLocation(location);
         /*locManager = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
         locManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER, 1000, 1, locListener);
-
         mobileLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);*/
 
-       //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        mLastLocation = location;
+        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        /*mLastLocation = location;
         if (mCurrentLocationMarker != null) {
             mCurrentLocationMarker.remove();
         }
@@ -635,11 +613,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, (float) 19.08);
         //move map camera
         mGoogleMap.moveCamera(cameraUpdate);
-
         //stop location updates
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
+        }*/
     }
 
 
@@ -745,13 +722,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //we create a TCPClient object and
             mTcpClient = TCPClient.getInstance();
 
-            while(mTcpClient.messageAdded == false);
+            while(mTcpClient != null) {
 
-            if(!mTcpClient.array.isEmpty()) {
-                Log.e("Async Task 2", "Recebido: " + mTcpClient.array.peek());
+                while (mTcpClient.messageAdded == false) ;
 
-                publishProgress(mTcpClient.array.remove());
-                mTcpClient.messageAdded = false;
+                if (!mTcpClient.array.isEmpty()) {
+                    Log.e("MainActivity", "AsyncTask Reception: " + mTcpClient.array.peek());
+
+                    publishProgress(mTcpClient.array.peek());
+                    mTcpClient.array.remove();
+                    mTcpClient.messageAdded = false;
+                } else {
+                    Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
+                }
             }
             return null;
         }
@@ -760,34 +743,39 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             //in the arrayList we add the messaged received from server
-            Log.d("onProgress", values[0]);
             Message = values[0];
             messageReceived = true;
+            Log.e("MainActivity", "onProgressUpdate: " + Message);
             // notify the adapter that the data set has changed. This means that new message received
             // from server was added to the list
         }
     }
 
     public class backgroundSending extends AsyncTask<String, String, String> {
-
+        String coordenadas;
         @Override
         protected String doInBackground(String... message) {
 
-            long startTime = System.currentTimeMillis();
-            while(mTcpClient != null && (System.currentTimeMillis()-startTime)<20000) {
-            //Envia coordenadas durante 20 seg. O ideal é enviar até ser feito o logout.
-                try {
-                    Double latitude = 41.7777777; //mLastLocation.getLatitude();
-                    Double longitude = 50.9999999; //mLastLocation.getLongitude();
-                    String coordenadas = Double.toString(latitude)+"$"+Double.toString(longitude);
+            while(mTcpClient == null);
 
+            //long startTime = System.currentTimeMillis();
+            //while((System.currentTimeMillis()-startTime)<20000) {
+            while(!logoutPressed) {
+                //Envia coordenadas durante 20 seg. O ideal é enviar até ser feito o logout.
+
+                try {
+                    if(mLastLocation!=null) {
+                        Double latitude_enviar = mLastLocation.getLatitude();//41.7777777; //mLastLocation.getLatitude();
+                        Double longitude_enviar = mLastLocation.getLongitude();//50.9999999; //mLastLocation.getLongitude();
+                        coordenadas = Double.toString(latitude_enviar) + "$" + Double.toString(longitude_enviar);
+                    }
                     //if(mLastLocation != null) {
                     if (coordenadas != "$") {
                         mTcpClient.sendMessage(coordenadas);
                         //Log.e("ASYNC", Double.toString(mLastLocation.getLatitude()));
                     }
                     else {
-                        Log.e("MA_sendMessage", "Coordenadas não enviadas");
+                        Log.e("MainActivity", "AsyncTask Sending: Coordenadas não enviadas");
                     }
                     Thread.sleep(2000);
 
@@ -796,6 +784,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     e.printStackTrace();
                 }
             }
+            logoutPressed = false;
             return null;
         }
     }

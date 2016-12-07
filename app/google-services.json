@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "964670228893-2sl5qbhvisi8utbgf2bee2i015krheor.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azgo.mapapp",
+            "certificate_hash": "AB5E2F9CF2E730651AA3A1F15B0418D5198626A8"
+          }
+        },
+        {
           "client_id": "964670228893-tcs4nb070vhm5t866l39pdiukgit6t73.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
