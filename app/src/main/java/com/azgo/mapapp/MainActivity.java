@@ -59,13 +59,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     SupportMapFragment mapFrag;
     private LocationRequest mLocationRequest;
     GoogleApiClient mGoogleApiClient;
-    private Location mLastLocation;
+    public static Location mLastLocation;
     Marker mCurrentLocationMarker;
     String location;
-    Location sendLastLocation;
     Polyline mPolyLine;
     private LocationManager locationManager;
-    Location location_nav;
 
 
 
@@ -370,14 +368,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void startNavigationTo(Graph.Node searchNode, Location mLastLocation) {
+    public void startNavigationTo(Graph.Node searchNode, Location localizacao) {
 
         //calculate closest Node to mLastLocation
         //mGoogleMap.UiSettings.setMapToolbarEnabled(false);
         LinkedList<Graph.Node> caminho = new LinkedList<>();
         List<Graph.Node> nos = grafo.getListNodes();
         Graph.Node closestNode;
-        closestNode = findClosestNode(mLastLocation.getLatitude(), mLastLocation.getLongitude(), nos);
+        closestNode = findClosestNode(localizacao.getLatitude(), localizacao.getLongitude(), nos);
         Graph.Node indexSource = grafo.getNode(closestNode.getIndex());
 
 
@@ -388,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //draw path on Google Maps
         // Instantiates a new Polyline object and adds points to define the navigation path
 
-        linePath.add(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()));
+        linePath.add(new LatLng(localizacao.getLatitude(), localizacao.getLongitude()));
         /*listIter = myList.listIterator(myList.size());
         while (listIter.hasPrevious()) {
             String prev = listIter.previous();
@@ -447,12 +445,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return closestNode;
     }
 
-    public void stopNavigation(Location mLastLocation) {
+    public void stopNavigation(Location localizacao) {
         String name = "I am here";
         //Place current location marker
         mPolyLine.remove();
-        LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-        setMarker(name, mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        LatLng latLng = new LatLng(localizacao.getLatitude(), localizacao.getLongitude());
+        setMarker(name, localizacao.getLatitude(), localizacao.getLongitude());
 
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -551,7 +549,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 == PackageManager.PERMISSION_GRANTED){
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
-        if (location_nav == null) {
+        if (mLastLocation == null) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
         else {
