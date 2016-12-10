@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
@@ -56,16 +57,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Location mLastLocation;
     Marker mCurrentLocationMarker;
 
+    TextView textView;
+
     //Communicação
     public TCPClient mTcpClient;
     private static boolean messageReceived;
     private static String Message;
 
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        textView=(TextView)findViewById(R.id.scale);
+        textView.setVisibility(View.INVISIBLE);
 
         //Eliminate this
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -91,7 +98,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //No Google Maps Layout
         }
     }
+    public void changeState(View view){
+        boolean check =((ToggleButton)view).isChecked();
+        if(check) {
+            textView.setText("Scale On");
+            textView.setVisibility(View.VISIBLE);
+        }
+        else{
+            textView.setText("Scale Off");
+        }
 
+
+    }
     @Override
     public void onPause() {
         super.onPause();
