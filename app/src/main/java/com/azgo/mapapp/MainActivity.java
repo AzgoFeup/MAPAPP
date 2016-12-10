@@ -649,7 +649,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(navigation_on == 1){
             marker.remove();
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(latLng)      // Sets the center of the map to Mountain View
+                    .target(latLng)
+                    .bearing(mCurrentLocation.getBearing())// Sets the center of the map to Mountain View
                     .zoom(21)                   // Sets the zoom
                     .tilt(60)                   // Sets the tilt of the camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
@@ -658,7 +659,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             marker.remove();
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(latLng)      // Sets the center of the map to Mountain View
+                    .target(latLng)
+                    .bearing(mCurrentLocation.getBearing())// Sets the center of the map to Mountain View
                     .zoom((float) 19.08)                   // Sets the zoom
                     .tilt(0)                   // Sets the tilt of the camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
