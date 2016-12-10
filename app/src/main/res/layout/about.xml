@@ -44,15 +44,6 @@
 
     <!-- Texto -->
 
-    <ImageView
-        android:id="@+id/imageView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginEnd="30dp"
-        android:src="@drawable/login_logo" />
-
 
     <TextView
         android:text="@string/aboutText"
@@ -65,6 +56,15 @@
         android:textSize="20sp"
         android:fontFamily="sans-serif-condensed"
         android:textColor="@color/cardview_light_background"
-        />
+        android:textAlignment="center" />
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/login_logo"
+        android:layout_below="@+id/toolbar2"
+        android:layout_alignStart="@+id/back_arrow" />
 
 </RelativeLayout>
