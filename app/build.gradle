@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "25.0.0"
+    buildToolsVersion "25.0.1"
     defaultConfig {
         applicationId "com.azgo.mapapp"
         minSdkVersion 21
@@ -36,8 +36,8 @@ dependencies {
     compile 'com.google.android.gms:play-services-location:9.8.0'
 
     //Firabase
-    compile 'com.google.firebase:firebase-core:9.0.2'
-    compile 'com.google.firebase:firebase-auth:9.0.2'
+    compile 'com.google.firebase:firebase-core:9.2.1'
+    compile 'com.google.firebase:firebase-auth:9.2.1'
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:design:24.0.0'
 }

@@ -3,11 +3,15 @@ package com.azgo.mapapp;
 
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.os.AsyncTaskCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -21,6 +25,9 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -56,7 +63,13 @@ public class mainLogin extends AppCompatActivity implements
     private TCPClient mTcpClient;
     private static String Message;
     private static boolean messageReceived;
-    private static boolean errorLogin;
+    private static boolean errorLogin = false;
+
+    //Asinc Task
+    public AsyncTask login;
+    public AsyncTask reception;
+
+    private Object lock1 = new Object();
 
     //MISC
     private ProgressBar mProgress;
@@ -65,17 +78,25 @@ public class mainLogin extends AppCompatActivity implements
     public void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        Log.e("mainLogin", "STARTING");
         /* Load the view and display it */
         FacebookSdk.sdkInitialize(getApplicationContext());
 
         setContentView(R.layout.activity_login);
         //SERVER
 
-        if(mTcpClient == null) {
+        if (mTcpClient == null) {
+            Log.e("mainLogin", "Connecting to Server");
+
+            //AsyncTask<String,String,TCPClient> connectTask = new connectTask();
+            //AsyncTaskCompat.executeParallel(connectTask, "");
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                new connectTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+                Log.e("mainLogin", "Async Task: connectTask - if");
+                reception = new connectTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             } else {
-                new connectTask().execute("");
+                Log.e("mainLogin", "Async Task: connectTask - else");
+                reception = new connectTask().execute("");
             }
         }
 
@@ -175,17 +196,18 @@ public class mainLogin extends AppCompatActivity implements
 
         // [START config_signin]
         // Configure Google Sign In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
+                GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
         // [END config_signin]
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this,null) //TODO: Ver como resolver isto
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, null) //TODO: Ver como resolver isto
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .addApi(AppIndex.API).build();
 
 
     }
@@ -206,7 +228,8 @@ public class mainLogin extends AppCompatActivity implements
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(TAG, "FACEBOOK: signInWithCredential:onComplete:" + task.isSuccessful());
+                        Log.d(TAG, "FACEBOOK: signInWithCredential:onComplete:"
+                                + task.isSuccessful());
 
                         // If sign in fails, display a message to the user. If sign in succeeds
                         // the auth state listener will be notified and logic to handle the
@@ -295,19 +318,21 @@ public class mainLogin extends AppCompatActivity implements
     @Override
     public void onStart() {
         super.onStart();
-        Log.e("mainLogin", "onStart()");
+        mGoogleApiClient.connect();
+        Log.d("mainLogin", "onStart()");
         mAuth.addAuthStateListener(mAuthListener);
-        Log.e("mainLogin", "onStart() END");
+
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        Log.e("mainLogin","onStop()");
+        Log.d("mainLogin", "onStop()");
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
-        Log.e("mainLogin","onStop() END");
+
+        mGoogleApiClient.disconnect();
     }
 
 
@@ -319,7 +344,8 @@ public class mainLogin extends AppCompatActivity implements
         }
         else if (i == R.id.buttonDebug){
             Intent intent = new Intent(mainLogin.this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }
     }
@@ -328,20 +354,30 @@ public class mainLogin extends AppCompatActivity implements
 
         Log.e("mainLogin", "goMainScreen()");
 
+        /*
         if(mTcpClient == null)  {
             Log.e("mainLogin", "goMainScreen(): mTcpClient == null");
+            AsyncTask<String,String,TCPClient> connectTask = new connectTask();
+            AsyncTaskCompat.executeParallel(connectTask, "");
+            /*
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 new connectTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             } else {
                 new connectTask().execute("");
             }
-        }
+            */
+        //}
 
-        Log.e("mainLogin", "Connecting...");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ) {
-            new login().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-        } else {
-            new login().execute("");
+        Log.e("mainLogin", "Async Task - login");
+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                Log.e("mainLogin", "Async Task: login - if");
+                login = new login().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            } else {
+                Log.e("mainLogin", "Async Task: login - else");
+                login = new login().execute("");
+
         }
 
 
@@ -352,31 +388,75 @@ public class mainLogin extends AppCompatActivity implements
         @Override
         protected TCPClient doInBackground(String... message) {
 
+            Thread.currentThread().setName("Login-connectTask-doInBackground");
+
             //we create a TCPClient object and
-            mTcpClient = TCPClient.getInstance();
+            Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
+                    "connectTask: Creating mTcpClient)");
+            synchronized (lock1) {
+                mTcpClient = TCPClient.getInstance();
+            }
+            Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
+                    "connectTask: 1mTcpClient " + mTcpClient);
 
-            //espera enquanto nao recebe nada
-            while(!mTcpClient.messageAdded);
 
-            Log.e("mainLogin", "connectTask: mTcpClient.array= " + mTcpClient.array.peek());
+            if (mTcpClient == null) { //Best way to do?
+                Log.e("connectTask [" + Thread.currentThread().getId() + "]" , "return");
+                return mTcpClient;
+            }
+            else {
+                Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
+                        "connectTask: 2mTcpClient " + mTcpClient);
+                //espera enquanto nao recebe nada
 
-            publishProgress(mTcpClient.array.remove());
-            mTcpClient.messageAdded = false;
+                while (!mTcpClient.loginReceived) ;
+
+
+                mTcpClient.loginReceived = false;
+
+                Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
+                        "connectTask: mTcpClient.array= " + mTcpClient.loginArray.peek());
+
+                publishProgress(mTcpClient.loginArray.remove());
+                mTcpClient.loginReceived = false;
+
+            }
             return null;
         }
+
 
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
 
             //in the arrayList we add the messaged received from server
-            Log.d("onProgress", values[0]);
+            Log.d("AsyncTask", values[0]);
             Message = values[0];
             messageReceived = true;
             // notify the adapter that the data set has changed. This means that new message received
             // from server was added to the list
 
 
+        }
+
+        @Override
+        protected void onPostExecute(TCPClient tcpClient) {
+            super.onPostExecute(tcpClient);
+            Log.e("connectTask-AsyncTask  [" + Thread.currentThread().getId() + "| " +
+                    Thread.currentThread().getName()+ "]", "Cenas "+mTcpClient);
+            if (mTcpClient == null) {
+                errorLogin = true;
+                displayAlert("Error");
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            Log.e("connectTask-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                    Thread.currentThread().getName()+ " ]", "Canceled");
+            errorLogin = true;
+            if (mTcpClient == null) displayAlert("Error");
         }
     }
 
@@ -386,50 +466,97 @@ public class mainLogin extends AppCompatActivity implements
 
         @Override
         protected String doInBackground(String... message) {
+            Thread.currentThread().setName("Login_ASyNCTASK-doInBackground");
+            Log.e("login-AsyncTask [ " + Thread.currentThread().getId() + " | " +
+                    Thread.currentThread().getName()+ " ]", "login(): Entering while");
 
-            //Log.e("mainLogin", "login(): Entering while");
-            while(true){
-                Log.e("mainLogin", "login()");
-                if(mTcpClient == null){
-                    return "False";
+            synchronized (lock1) {
+                while (true) {
+                    Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                            Thread.currentThread().getName() + " ]", "checking mTCPClient: "
+                            + mTcpClient);
+
+                    while (mTcpClient == null) {
+                        if (errorLogin) return "False";
+                    }
+
+
+                    Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                            Thread.currentThread().getName() + " ]", "Sending login to server "
+                    );
+                    //TODO: O que enviar para o server?
+                    mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName()
+                            + "$" + mAuth.getCurrentUser().getEmail());
+
+                    // Waits for the server response
+                    while (!messageReceived) ;
+                    Log.e("login-AsyncTask [ " + Thread.currentThread().getId() + " | " +
+                            Thread.currentThread().getName() + " ]", "Message Received");
+                    messageReceived = false;
+
+                    //Login Done?
+                    String[] items = Message.split("\\$");
+                    if (items[0].equals("Login")) break;
                 }
 
-                //TODO: O que enviar para o server?
-                mTcpClient.sendMessage("Login@delfim");
-
-                // Waits for the server response
-                while(!messageReceived);
-                messageReceived = false;
-
-                //Login Done?
-                if(Message.equals("ok")) break;
+                return "True";
             }
-
-            return "True";
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            Thread.currentThread().setName("Login-async");
             this.dialog.setMessage("Processing...");
             this.dialog.show();
+            Log.e("AsyncTask", "Processing created");
         }
 
         @Override
         protected void onPostExecute(String value) {
             super.onPostExecute(value);
 
+            Log.e("AsyncTask-login", "onPostExecute");
             if(value.equals("True")) {
                 this.dialog.dismiss();
+                reception.cancel(true);
+                Log.e("AsyncTask", "onPostExecute");
                 Intent intent = new Intent(mainLogin.this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 if(this.isCancelled()) cancel(true);
             }
             else {
-                Log.e("mainLogin", "login() mTcpClient == null");
+                this.dialog.dismiss();
+                Log.e("AsyncTask", "login() mTcpClient == null");
             }
         }
     }
+
+
+    private void displayAlert(String message)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message).setCancelable(
+                false).setNegativeButton("Close",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        mainLogin.this.finish();
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+
+
 }
+
+
+
+
+
 

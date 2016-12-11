@@ -2,6 +2,7 @@ package com.azgo.mapapp;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,6 +16,7 @@ import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -32,6 +34,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -89,7 +94,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final float[] mRotationMatrix = new float[16];
     double angle;
 
-
     //prepare graph
     static Graph grafo = new Graph();
     static List<Graph.Node> nodes = grafo.insertNodes();
@@ -101,6 +105,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static boolean messageReceived;
     private static String Message;
     boolean logoutPressed = false;
+    private AsyncTask senAsync;
+    private AsyncTask recAsync;
+    private AsyncTask logAsync;
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
 
     @Override
@@ -120,19 +133,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         createLocationRequest();*/
         //mGoogleMap = null;
 
-        //Eliminate this
+        //Communication Stuff
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-            new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            recAsync = new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            senAsync = new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         } else {
-            new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-            new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            recAsync = new backgroundReception().execute();
+            senAsync = new backgroundSending().execute();
         }
         //till were
 
         /*
         if (googleServicesAvailable()) {
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 checkLocationPermission();
             }
             Toast.makeText(this, "Connected!!", Toast.LENGTH_LONG).show();
@@ -149,6 +163,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Location location = locationManager.getLastKnownLocation(provider);*/
         buildGoogleApiClient();
         mGoogleApiClient.connect();
+        //Location location = locationManager.getLastKnownLocation(provider);
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
 
@@ -562,7 +580,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case R.id.logout:
                 signOut();
-                logoutPressed = true;
                 break;
             case R.id.info:
                 goUserInfoPage();
@@ -733,7 +750,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[], @NonNull int[] grantResults) {
@@ -805,15 +821,40 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     public void signOut() {
+
+        logoutPressed = true;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            Log.e("SignOut", "Logout - if" );
+            logAsync = new logout().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+        } else {
+            Log.e("SignOut", "Logout - if" );
+            logAsync = new logout().execute();
+        }
+
+        /*
         FirebaseAuth.getInstance().signOut(); //for gmail
         LoginManager.getInstance().logOut(); //for facebook
 
+        Log.e("SignOut", "Firebase" );
+
+        recAsync.cancel(true);
+        senAsync.cancel(true);
+
+        Log.e("SignOut", "Async Cancel" + logoutPressed);
+
+        if( mTcpClient != null) mTcpClient.stopClient();
+
+        while(mTcpClient != null);
+        Log.e("SignOut", "GoingTo login" + logoutPressed);
         goLoginScreen();
+        */
     }
 
     private void goLoginScreen() {
         Intent intent = new Intent(this, mainLogin.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }
 
@@ -861,14 +902,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             while(mTcpClient != null) {
 
-                while (mTcpClient.messageAdded == false) ;
+                while (mTcpClient.comunicationReceived == false) ;
 
-                if (!mTcpClient.array.isEmpty()) {
-                    Log.e("MainActivity", "AsyncTask Reception: " + mTcpClient.array.peek());
+                if (!mTcpClient.comunicationArray.isEmpty()) {
+                    Log.e("MainActivity", "AsyncTask Reception: " + mTcpClient.comunicationArray.peek());
 
-                    publishProgress(mTcpClient.array.peek());
-                    mTcpClient.array.remove();
-                    mTcpClient.messageAdded = false;
+                    publishProgress(mTcpClient.comunicationArray.peek());
+                    mTcpClient.comunicationArray.remove();
+                    mTcpClient.comunicationReceived = false;
                 } else {
                     Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
                 }
@@ -901,6 +942,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //Envia coordenadas durante 20 seg. O ideal é enviar até ser feito o logout.
 
                 try {
+                    Log.e("ASYNC", "Sending Cordenadas: " +mCurrentLocation);
                     if (mCurrentLocation != null) {
                         Double latitude_enviar = mCurrentLocation.getLatitude();
 
@@ -909,15 +951,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
 
 
-                    //if(mLastLocation != null) {
-                    if (coordenadas != "$") {
+                    if (coordenadas != "$" && !coordenadas.equals("")) {
                         mTcpClient.sendMessage(coordenadas);
-                        //Log.e("ASYNC", Double.toString(mLastLocation.getLatitude()));
+                        Log.e("ASYNC", "Sending Cordenadas: " + coordenadas);
                     }
                     else {
                         Log.e("MainActivity", "AsyncTask Sending: Coordenadas não enviadas");
                     }
                     Thread.sleep(2000);
+
+                    if(logoutPressed) cancel(true);
 
                 }
                 catch (InterruptedException e) {
@@ -927,5 +970,62 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             logoutPressed = false;
             return null;
         }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            Log.e("ASYNC", "CANCELED: " );
+            return ;
+        }
     }
+
+    public class logout extends AsyncTask<String,String,String> {
+
+        private final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+
+        @Override
+        protected String doInBackground(String... values) {
+
+
+            FirebaseAuth.getInstance().signOut(); //for gmail
+            LoginManager.getInstance().logOut(); //for facebook
+
+            Log.e("SignOut", "Firebase" );
+
+            recAsync.cancel(true);
+            senAsync.cancel(true);
+
+            Log.e("SignOut", "Async Cancel " + logoutPressed);
+
+            if( mTcpClient != null) mTcpClient.stopClient();
+
+            //while(mTcpClient != null)
+
+            Log.e("SignOut", "GoingTo login" + logoutPressed);
+            return null;
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Thread.currentThread().setName("Logout-async");
+            this.dialog.setMessage("Login out...");
+            this.dialog.show();
+            Log.e("AsyncTask", "Processing created");
+        }
+
+        @Override
+        protected void onPostExecute(String value) {
+            super.onPostExecute(value);
+
+            Log.e("AsyncTask", "onPostExecute");
+
+                this.dialog.dismiss();
+                goLoginScreen();
+                if (this.isCancelled()) cancel(true);
+
+            }
+        }
+
 }
