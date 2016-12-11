@@ -397,30 +397,33 @@ public class mainLogin extends AppCompatActivity implements
                 mTcpClient = TCPClient.getInstance();
             }
             Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
-                    "connectTask: 1mTcpClient " + mTcpClient);
+                    "connectTask: mTcpClient is " + mTcpClient);
 
 
-            if (mTcpClient == null) { //Best way to do?
-                Log.e("connectTask [" + Thread.currentThread().getId() + "]" , "return");
-                return mTcpClient;
+            while(!mTcpClient.connected) { //Best way to do?
+                if(mTcpClient.socketTimeout) {
+                    Log.e("connectTask [" + Thread.currentThread().getId() + "]", "return");
+                    mTcpClient = null;
+                    return mTcpClient;
+                }
             }
-            else {
-                Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
-                        "connectTask: 2mTcpClient " + mTcpClient);
-                //espera enquanto nao recebe nada
 
-                while (!mTcpClient.loginReceived) ;
+            Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
+                    "connectTask: mTcpClient is now " + mTcpClient);
+            //espera enquanto nao recebe nada
+
+            while (!mTcpClient.loginReceived) ;
 
 
-                mTcpClient.loginReceived = false;
+            mTcpClient.loginReceived = false;
 
-                Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
-                        "connectTask: mTcpClient.array= " + mTcpClient.loginArray.peek());
+            Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
+                    "connectTask: mTcpClient.array= " + mTcpClient.loginArray.peek());
 
-                publishProgress(mTcpClient.loginArray.remove());
-                mTcpClient.loginReceived = false;
+            publishProgress(mTcpClient.loginArray.remove());
+            mTcpClient.loginReceived = false;
 
-            }
+
             return null;
         }
 
@@ -470,7 +473,7 @@ public class mainLogin extends AppCompatActivity implements
             Log.e("login-AsyncTask [ " + Thread.currentThread().getId() + " | " +
                     Thread.currentThread().getName()+ " ]", "login(): Entering while");
 
-            synchronized (lock1) {
+
                 while (true) {
                     Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
                             Thread.currentThread().getName() + " ]", "checking mTCPClient: "
@@ -500,7 +503,7 @@ public class mainLogin extends AppCompatActivity implements
                 }
 
                 return "True";
-            }
+
         }
 
         @Override
@@ -545,6 +548,7 @@ public class mainLogin extends AppCompatActivity implements
 
                         mainLogin.this.finish();
                         dialog.cancel();
+                        System.exit(1);
                     }
                 });
         AlertDialog alert = builder.create();

@@ -108,6 +108,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private AsyncTask senAsync;
     private AsyncTask recAsync;
     private AsyncTask logAsync;
+    private AsyncTask waitConnection;
+
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -179,6 +181,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //low to avoid flickering
         mSensorManager.registerListener(this, mRotVectorSensor, SensorManager.SENSOR_STATUS_ACCURACY_HIGH);
         updateMarkers();
+        //TODO: be tested
+/*
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            recAsync = new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            senAsync = new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+        } else {
+            recAsync = new backgroundReception().execute();
+            senAsync = new backgroundSending().execute();
+        }
+*/
     }
 
     @Override
@@ -187,6 +199,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //unregister listener
         mSensorManager.unregisterListener(this);
         //mGoogleMap=null;
+
+        //Stop asyncTask
+        //TODO: be tested
+        /*
+        senAsync.cancel(true);
+        recAsync.cancel(true);
+        */
 
         //stop location updates when Activity is no longer active
         if (mGoogleApiClient.isConnected()) {
@@ -831,24 +850,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e("SignOut", "Logout - if" );
             logAsync = new logout().execute();
         }
-
-        /*
-        FirebaseAuth.getInstance().signOut(); //for gmail
-        LoginManager.getInstance().logOut(); //for facebook
-
-        Log.e("SignOut", "Firebase" );
-
-        recAsync.cancel(true);
-        senAsync.cancel(true);
-
-        Log.e("SignOut", "Async Cancel" + logoutPressed);
-
-        if( mTcpClient != null) mTcpClient.stopClient();
-
-        while(mTcpClient != null);
-        Log.e("SignOut", "GoingTo login" + logoutPressed);
-        goLoginScreen();
-        */
     }
 
     private void goLoginScreen() {
@@ -902,13 +903,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             while(mTcpClient != null) {
 
-                while (mTcpClient.comunicationReceived == false) ;
+                while (!mTcpClient.comunicationReceived) ;
 
-                if (!mTcpClient.comunicationArray.isEmpty()) {
-                    Log.e("MainActivity", "AsyncTask Reception: " + mTcpClient.comunicationArray.peek());
+                if (!TCPClient.comunicationArray.isEmpty()) {
+                    Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.comunicationArray.peek());
 
-                    publishProgress(mTcpClient.comunicationArray.peek());
-                    mTcpClient.comunicationArray.remove();
+                    publishProgress(TCPClient.comunicationArray.peek());
+                    TCPClient.comunicationArray.remove();
                     mTcpClient.comunicationReceived = false;
                 } else {
                     Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
@@ -931,10 +932,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public class backgroundSending extends AsyncTask<String, String, String> {
 
+        private boolean connection = false;
         @Override
         protected String doInBackground(String... message) {
             String coordenadas = "";
             while(mTcpClient == null);
+            connection = true;
 
             //long startTime = System.currentTimeMillis();
             //while((System.currentTimeMillis()-startTime)<20000) {
@@ -952,8 +955,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
                     if (coordenadas != "$" && !coordenadas.equals("")) {
-                        mTcpClient.sendMessage(coordenadas);
-                        Log.e("ASYNC", "Sending Cordenadas: " + coordenadas);
+                        if(!TCPClient.connected && connection) {
+                            publishProgress("");
+                            connection = false;
+                        }
+                        else if (TCPClient.connected){
+                            connection = true;
+                            mTcpClient.sendMessage("Coordenates$" + coordenadas);
+                            Log.e("ASYNC", "Sending Cordenadas: " + coordenadas);
+                        }
+                        else
+                        {
+                            Log.e("ASYNC", "Waiting for connection " );
+                        }
+
                     }
                     else {
                         Log.e("MainActivity", "AsyncTask Sending: Coordenadas não enviadas");
@@ -972,8 +987,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                Log.e("backgroundSending", "waitConnection - if" );
+                waitConnection = new waitConnection().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            } else {
+                Log.e("backgroundSending", "waitConnection - if" );
+                waitConnection = new waitConnection().execute();
+            }
+
+
+        }
+
+        @Override
         protected void onCancelled() {
             super.onCancelled();
+            connection = false;
+            mTcpClient.stopClient();
+
             Log.e("ASYNC", "CANCELED: " );
             return ;
         }
@@ -997,9 +1030,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             Log.e("SignOut", "Async Cancel " + logoutPressed);
 
-            if( mTcpClient != null) mTcpClient.stopClient();
+            if( mTcpClient != null){
+                mTcpClient.stopClient();
+                mTcpClient = null;
+            }
 
             //while(mTcpClient != null)
+
+
 
             Log.e("SignOut", "GoingTo login" + logoutPressed);
             return null;
@@ -1027,5 +1065,45 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         }
+
+
+
+    public class waitConnection extends AsyncTask<String,String,String> {
+
+        private final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+
+        @Override
+        protected String doInBackground(String... values) {
+
+            while (!TCPClient.connected) {
+                try {
+                    Thread.currentThread().sleep(1000);
+                    mTcpClient.sendMessage("Login");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Thread.currentThread().setName("Logout-async");
+            this.dialog.setMessage("Reconnecting...");
+            this.dialog.show();
+            Log.e("AsyncTask", "Processing created");
+        }
+
+        @Override
+        protected void onPostExecute(String value) {
+            super.onPostExecute(value);
+            Log.e("AsyncTask", "onPostExecute");
+            this.dialog.dismiss();
+
+        }
+    }
 
 }

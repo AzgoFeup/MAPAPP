@@ -15,6 +15,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +37,7 @@ class TCPClient implements Runnable {
     static Queue<String> loginArray;
     static Queue<String> comunicationArray;
     public boolean socketTimeout = false;
+    static public boolean connected = false;
     static public Thread t;
 
     //TODO : FAZER ISTO MAIS FIAVEL
@@ -76,6 +78,12 @@ class TCPClient implements Runnable {
      * @param message text entered by client
      */
     void sendMessage(final String message){
+        if (out == null || connected == false)
+        { //TODO: Check errors
+            Log.d("TCP Client", "Reconcting" );
+            t = new Thread(instance);
+            t.start();
+        }
         if (out != null && !out.checkError()) {
             Log.d("TCP Client", "S: Sending" + message);
 
@@ -89,6 +97,7 @@ class TCPClient implements Runnable {
             }.start();
 
         }
+
     }
 
     /**
@@ -114,6 +123,7 @@ class TCPClient implements Runnable {
         //receive the message which the server sends back
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         Log.d("TCPClient", "run(): in created");
+        TCPClient.connected = true;
 
 
     }
@@ -125,8 +135,8 @@ class TCPClient implements Runnable {
             if(socket != null)socket.close();
             if(in != null) in.close();
             if(out != null)out.close();
+            connected = false;
             t.interrupt();
-            instance = null;
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -142,15 +152,15 @@ class TCPClient implements Runnable {
         Thread.currentThread().setName("TCP_RUN");
 
         mRun = true;
-
+        int nullmessage = 0;
 
             try {
                 try {
                     startSocket();
-                } catch (SocketTimeoutException e) {
+                } catch (SocketTimeoutException | SocketException e ) {
                     Log.e("TCPClient", "run(): SocketTimeoutException", e);
                     socketTimeout = true;
-                    instance = null;
+
                     return;
                 }
                 Log.d("TCPClient", "run(): Started!");
@@ -162,9 +172,16 @@ class TCPClient implements Runnable {
                     Log.d("TCPClient", "run(): Received: " + serverMessage);
 
                     if (serverMessage != null) {
+                        nullmessage = 0;
                         //call the method messageReceived from MyActivity class
                         messageReceived(serverMessage);
                         //messageAdded = true;
+                    }
+                    else if(nullmessage == 1000) { //Great number???
+                        throw new Exception("No Connection");
+                    }
+                    else {
+                        nullmessage++;
                     }
                     serverMessage = null;
                 }
@@ -205,8 +222,8 @@ class TCPClient implements Runnable {
             loginArray.add(message);
             loginReceived = true;
         }
-        else if(items[0].equals("coordenadas")) {
-            Log.e("TCPClient", "messageReceived: is coordenadas");
+        else if(items[0].equals("Coordinates")) {
+            Log.e("TCPClient", "messageReceived: is coordinates");
             comunicationArray.add(message);
             comunicationReceived = true;
         }
