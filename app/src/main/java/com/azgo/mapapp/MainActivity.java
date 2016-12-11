@@ -6,6 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.hardware.GeomagneticField;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -54,12 +58,14 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import android.hardware.SensorEventListener;
+import android.content.Context;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, SensorEventListener {
     PolylineOptions linePath = new PolylineOptions();
     GoogleMap mGoogleMap;
     SupportMapFragment mapFrag;
@@ -77,6 +83,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean mLocationPermissionGranted;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private int navigation_on = 0;
+    float mDeclination;
+    SensorManager mSensorManager;
+    private Sensor mRotVectorSensor;
+    private final float[] mRotationMatrix = new float[16];
+    double angle;
 
 
     //prepare graph
@@ -96,7 +107,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mRotVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
         // Create the LocationRequest object
         /*mLocationRequest = LocationRequest.create()
@@ -139,18 +151,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGoogleApiClient.connect();
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
         if (mGoogleApiClient.isConnected()) {
             getDeviceLocation();
         }
+        //low to avoid flickering
+        mSensorManager.registerListener(this, mRotVectorSensor, SensorManager.SENSOR_STATUS_ACCURACY_HIGH);
         updateMarkers();
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        //unregister listener
+        mSensorManager.unregisterListener(this);
         //mGoogleMap=null;
 
         //stop location updates when Activity is no longer active
@@ -563,6 +580,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onConnected(Bundle bundle) {
         getDeviceLocation();
+        mSensorManager.registerListener(this, mRotVectorSensor, SensorManager.SENSOR_STATUS_ACCURACY_LOW);
         /*if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED){
@@ -645,6 +663,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }*/
         mCurrentLocation = location;
         updateMarkers();
+        GeomagneticField field = new GeomagneticField(
+                (float)mCurrentLocation.getLatitude(),
+                (float)mCurrentLocation.getLongitude(),
+                (float)mCurrentLocation.getAltitude(),
+                System.currentTimeMillis()
+        );
+        //getDeclination returns degrees
+        mDeclination = field.getDeclination();
+
         LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         if(navigation_on == 1){
             marker.remove();
@@ -794,6 +821,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Intent intent = new Intent(this, infoPage.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if(event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR){
+            SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values);
+            float[] orientation = new float[3];
+            SensorManager.getOrientation(mRotationMatrix, orientation);
+            if(Math.abs(Math.toDegrees(orientation[0] - angle))>0.8){
+                float bearing = (float)Math.toDegrees(orientation[0]) + mDeclination;
+                updateCamera(bearing);
+            }
+            angle = Math.toDegrees(orientation[0]);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    private void updateCamera(float bearing){
+        CameraPosition oldPos = mGoogleMap.getCameraPosition();
+        CameraPosition pos = CameraPosition.builder(oldPos).bearing(bearing).build();
+        mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos));
     }
 
 
