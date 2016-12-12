@@ -40,18 +40,17 @@
         android:layout_toEndOf="@+id/back_arrow" />
 
     <!-- Escala -->
-
+    <!--android:button="@drawable/scale_onoff"-->
     <ToggleButton android:id="@+id/scaleButton"
         android:background="@drawable/scale_onoff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:button="@drawable/scale_onoff"
-        android:layout_marginTop="53dp"
-        android:layout_below="@+id/toolbar2"
-        android:layout_toEndOf="@+id/cleanButton"
-        style="@style/toggleButton"
-        android:onClick="changeState"/>
 
+        style="@style/toggleButton"
+        android:layout_width="70dp"
+        android:layout_height="38dp"
+        android:onClick="changeState"
+        android:layout_marginTop="33dp"
+        android:layout_below="@+id/toolbar2"
+        android:layout_alignStart="@+id/voiceButton" />
 
     <TextView
         android:text="@string/scale"
@@ -62,18 +61,20 @@
         android:textSize="26sp"
         android:lineSpacingExtra="10sp"
         android:layout_alignTop="@+id/scaleButton"
-        android:layout_alignStart="@+id/settings_text" />
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="40dp" />
 
     <!-- Vibração -->
 
     <Button android:id="@+id/vibratingButton"
         android:background="@drawable/scale_onoff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="70dp"
+        android:layout_height="38dp"
+        android:layout_alignParentEnd="true"
         android:button="@drawable/scale_onoff"
-        android:layout_marginTop="21dp"
-        android:layout_below="@+id/scaleButton"
-        android:layout_alignStart="@+id/scaleButton" />
+        android:layout_below="@+id/voiceButton"
+        android:layout_marginEnd="49dp"
+        android:layout_marginTop="25dp"/>
 
     <TextView
         android:text="@string/vibration"
@@ -83,21 +84,22 @@
         android:fontFamily="sans-serif-thin"
         android:textSize="26sp"
         android:lineSpacingExtra="10sp"
-        android:layout_alignBaseline="@+id/vibratingButton"
-        android:layout_alignBottom="@+id/vibratingButton"
-        android:layout_toEndOf="@+id/back_arrow" />
+        android:layout_below="@+id/voice"
+        android:layout_alignStart="@+id/voice"
+        android:layout_marginTop="45dp" />
 
     <!-- Voz -->
 
     <Button
         android:id="@+id/voiceButton"
         android:background="@drawable/scale_onoff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="70dp"
+        android:layout_height="38dp"
         android:button="@drawable/scale_onoff"
-        android:layout_marginTop="20dp"
-        android:layout_below="@+id/vibratingButton"
-        android:layout_toEndOf="@+id/cleanButton" />
+        android:layout_below="@+id/scaleButton"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="49dp"
+        android:layout_marginTop="25dp" />
 
     <TextView
         android:text="@string/voice"
@@ -107,7 +109,7 @@
         android:fontFamily="sans-serif-thin"
         android:textSize="26sp"
         android:lineSpacingExtra="10sp"
-        android:layout_alignTop="@+id/voiceButton"
+        android:layout_alignBottom="@+id/voiceButton"
         android:layout_alignStart="@+id/scale" />
 
     <!-- Limpar Historico-->
@@ -116,13 +118,10 @@
         android:text="@string/clean"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="56dp"
         android:fontFamily="sans-serif-thin"
         android:textSize="20sp"
-        android:layout_below="@+id/voiceButton"
-        android:layout_alignStart="@+id/vibrating" />
-
-
-
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/vibrating"
+        android:layout_marginBottom="200dp" />
 
 </RelativeLayout>
