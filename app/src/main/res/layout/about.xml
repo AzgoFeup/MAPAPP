@@ -58,14 +58,13 @@
         android:text="@string/aboutText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="59dp"
-        android:layout_marginStart="59dp"
         android:id="@+id/aboutText"
         android:textSize="24sp"
         android:fontFamily="sans-serif-condensed"
         android:textColor="@color/cardview_light_background"
         android:textAlignment="center"
-        android:layout_below="@+id/imageView1"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="58dp" />
 
 </RelativeLayout>

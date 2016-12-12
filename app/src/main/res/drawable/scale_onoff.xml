@@ -4,5 +4,5 @@
     <item android:state_checked="false"
         android:drawable="@drawable/settings_off" />
     <item android:state_checked="true"
-        android:drawable="@drawable/settings_off" />
+        android:drawable="@drawable/settings_on" />
 </selector>
