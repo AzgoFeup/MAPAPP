@@ -338,7 +338,7 @@ public class mainLogin extends AppCompatActivity implements
             signIn();
         }
         else if (i == R.id.buttonDebug){
-            Intent intent = new Intent(mainLogin.this, MainActivity.class);
+            Intent intent = new Intent(mainLogin.this, DrawerMain.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }
@@ -448,7 +448,7 @@ public class mainLogin extends AppCompatActivity implements
 
             if(value.equals("True")) {
                 this.dialog.dismiss();
-                Intent intent = new Intent(mainLogin.this, MainActivity.class);
+                Intent intent = new Intent(mainLogin.this, DrawerMain.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 if(this.isCancelled() ==true) cancel(true);

@@ -9,12 +9,20 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +33,9 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.facebook.login.LoginManager;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -63,30 +74,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public TCPClient mTcpClient;
     private static boolean messageReceived;
     private static String Message;
-
-
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textView=(TextView)findViewById(R.id.scale);
+        textView = (TextView) findViewById(R.id.scale);
         textView.setVisibility(View.INVISIBLE);
 
         //Eliminate this
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-            } else {
-                new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-                new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+        } else {
+            new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         }
         //till were
 
 
         if (googleServicesAvailable()) {
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 checkLocationPermission();
             }
             Toast.makeText(this, "Connected!!", Toast.LENGTH_LONG).show();
@@ -97,19 +111,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             //No Google Maps Layout
         }
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
-    public void changeState(View view){
-        boolean check =((ToggleButton)view).isChecked();
-        if(check) {
+
+    public void changeState(View view) {
+        boolean check = ((ToggleButton) view).isChecked();
+        if (check) {
             textView.setText("Scale On");
             textView.setVisibility(View.VISIBLE);
-        }
-        else{
+        } else {
             textView.setText("Scale Off");
         }
 
 
     }
+
+
+
     @Override
     public void onPause() {
         super.onPause();
@@ -216,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mGoogleMap.setIndoorEnabled(true);
         //Initialize Google Play Services
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
@@ -311,10 +331,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         getMenuInflater().inflate(R.menu.menu, menu);
         return super.onCreateOptionsMenu(menu);
 
+
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
         //TODO Auto-generated method stub
+
         switch (item.getItemId()) {
             case R.id.mapTypeNone:
                 mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
@@ -491,6 +513,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         startActivity(intent);
     }
 
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Main Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
+    }
+
 
 ///COMUNICAÇÃO
 
@@ -541,18 +599,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             while (mTcpClient == null) ;
 
 
+            try {
+                //mTcpClient.sendMessage();
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
-                try {
-                    //mTcpClient.sendMessage();
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                return "";
+            return "";
 
         }
     }
+
 }
 
 
