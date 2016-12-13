@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
 
-    <Button
+    <ImageView
         android:layout_width="110dp"
         android:layout_height="24dp"
         android:id="@+id/my_places"
         android:layout_marginTop="91dp"
         android:layout_marginLeft="55dp"
-        android:background="@drawable/myplaces_w"/>
+        app:srcCompat="@drawable/myplaces_w"/>
 
-    <Button
+    <ImageView
         android:layout_width="110dp"
         android:layout_height="24dp"
         android:id="@+id/my_friends"
         android:layout_marginTop="91dp"
         android:layout_marginLeft="225dp"
-        android:background="@drawable/myfriends_b" />
+        app:srcCompat="@drawable/myfriends_b" />
 
     <View
         android:id="@+id/square_2"

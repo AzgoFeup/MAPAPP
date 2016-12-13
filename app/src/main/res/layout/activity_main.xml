@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
@@ -17,15 +18,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:id="@+id/editText"
-        android:hint="Where do you want to go?" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Go"
-        android:id="@+id/button"
-        android:onClick="geoLocate"
-        android:layout_gravity="center_horizontal" />
+        android:hint="Where do you want to go?"
+        android:layout_toStartOf="@+id/button" />
 
 
     <fragment
@@ -37,6 +31,15 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         tools:context="com.example.app.MapLocationActivity"
         android:id="@+id/map"
-        />
+        android:layout_below="@+id/editText" />
 
-</LinearLayout>
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/search"
+        android:layout_above="@+id/map"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="10dp"
+        android:id="@+id/button" />
+
+</RelativeLayout>

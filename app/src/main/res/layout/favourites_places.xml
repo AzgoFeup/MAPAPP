@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <Button
+
+    <ImageView
         android:layout_width="110dp"
         android:layout_height="24dp"
         android:id="@+id/my_places"
         android:layout_marginTop="91dp"
-        android:layout_marginLeft="55dp"
-        android:background="@drawable/myplaces_b"/>
+        android:layout_marginLeft="45dp"
+        app:srcCompat="@drawable/myplaces_w"/>
 
-    <Button
+    <ImageView
         android:layout_width="110dp"
         android:layout_height="24dp"
         android:id="@+id/my_friends"
         android:layout_marginTop="91dp"
         android:layout_marginLeft="225dp"
-        android:background="@drawable/myfriends_w" />
-
+        app:srcCompat="@drawable/myfriends_b" />
 
     <View
         android:layout_width="match_parent"
@@ -28,15 +27,15 @@
         android:background="@android:color/darker_gray"
         android:id="@+id/view"
         android:layout_alignEnd="@+id/my_friends"
-        android:layout_alignStart="@+id/imageView" />
+        android:layout_alignStart="@+id/my_places" />
 
     <View
         android:layout_width="match_parent"
         android:layout_marginTop="210dp"
         android:layout_height="1dp"
         android:background="@android:color/darker_gray"
-        android:layout_alignStart="@+id/imageView2"
-        android:layout_alignEnd="@+id/view" />
+        android:layout_alignEnd="@+id/view"
+        android:layout_alignStart="@+id/view" />
 
     <View
         android:layout_width="match_parent"
@@ -51,8 +50,11 @@
         android:layout_marginTop="300dp"
         android:layout_height="1dp"
         android:background="@android:color/darker_gray"
-        android:layout_alignStart="@+id/imageView4"
-        android:layout_alignEnd="@+id/view" />
+        android:layout_alignStart="@+id/my_places"
+        android:layout_alignEnd="@+id/view"
+        android:id="@+id/view4" />
+
+
 
     <TextView
         android:text="LIBRARY"
