@@ -5,23 +5,23 @@
         <item
             android:id="@+id/history"
             android:icon="@drawable/mainpage_iconhistory"
-            android:title="History" />
+            android:title="HISTORY" />
         <item
             android:id="@+id/favourites"
             android:icon="@drawable/mainpage_iconfavorites"
-            android:title="Favourites" />
+            android:title="FAVOURITES" />
         <item
             android:id="@+id/settings"
             android:icon="@drawable/mainpage_iconsettings"
-            android:title="Settings" />
+            android:title="SETTINGS" />
         <item
             android:id="@+id/about"
             android:icon="@drawable/mainpage_iconabout"
-            android:title="About" />
+            android:title="ABOUT" />
         <item
             android:id="@+id/logout"
             android:icon="@drawable/mainpage_iconlogout"
-            android:title="Logout" />
+            android:title="LOGOUT" />
     </group>
 
 </menu>

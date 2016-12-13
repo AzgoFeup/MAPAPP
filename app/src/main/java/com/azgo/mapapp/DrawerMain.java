@@ -1,5 +1,6 @@
 package com.azgo.mapapp;
 
+import android.content.Intent;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
@@ -10,11 +11,14 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.azgo.mapapp.fragments.AboutActivity;
 import com.azgo.mapapp.fragments.FavouritesActivity;
 import com.azgo.mapapp.fragments.HistoryActivity;
 import com.azgo.mapapp.fragments.SettingsActivity;
+import com.facebook.login.LoginManager;
+import com.google.firebase.auth.FirebaseAuth;
 
 /**
  * Created by Utilizador on 12-12-2016.
@@ -39,18 +43,21 @@ public class DrawerMain extends AppCompatActivity implements NavigationView.OnNa
             getSupportActionBar().setDisplayShowHomeEnabled(true);
 
 
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.drawer_open, R.string.drawer_close);
-        drawer.addDrawerListener(toggle);
-       toggle.syncState();
+            drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            toggle = new ActionBarDrawerToggle(
+                    this, drawer, toolbar, R.string.drawer_open, R.string.drawer_close);
+            drawer.addDrawerListener(toggle);
+           toggle.syncState();
 
 
-        navigationView = (NavigationView) findViewById(R.id.nvView);
-        navigationView.setNavigationItemSelectedListener( this);
+
+            navigationView = (NavigationView) findViewById(R.id.nvView);
+
+            navigationView.setNavigationItemSelectedListener(this);
 
 
-    }
+
+        }
 
         @Override
         public void onBackPressed () {
@@ -95,13 +102,17 @@ public class DrawerMain extends AppCompatActivity implements NavigationView.OnNa
         int id = item.getItemId();
 
         if (id == R.id.history) {
+            final TextView textViewToChange = (TextView) findViewById(R.id.toolbar_title);
+            textViewToChange.setText("HISTORY");
             HistoryActivity historyActivityFragment = new HistoryActivity();
             FragmentManager manager = getSupportFragmentManager();
             manager.beginTransaction().replace(R.id.content_frame,
                     historyActivityFragment,
                     historyActivityFragment.getTag()).commit();
-        } else if (id == R.id.favourites) {
 
+        } else if (id == R.id.favourites) {
+            final TextView textViewToChange = (TextView) findViewById(R.id.toolbar_title);
+            textViewToChange.setText("FAVOURITES");
             FavouritesActivity FavouritesActivityFragment = new FavouritesActivity();
             FragmentManager manager = getSupportFragmentManager();
             manager.beginTransaction().replace(R.id.content_frame,
@@ -110,6 +121,8 @@ public class DrawerMain extends AppCompatActivity implements NavigationView.OnNa
 
 
         } else if (id == R.id.about) {
+            final TextView textViewToChange = (TextView) findViewById(R.id.toolbar_title);
+            textViewToChange.setText("ABOUT");
             AboutActivity AboutActivityFragment = new AboutActivity();
             FragmentManager manager = getSupportFragmentManager();
             manager.beginTransaction().replace(R.id.content_frame,
@@ -117,6 +130,8 @@ public class DrawerMain extends AppCompatActivity implements NavigationView.OnNa
                     AboutActivityFragment.getTag()).commit();
 
         } else if (id == R.id.settings) {
+            final TextView textViewToChange = (TextView) findViewById(R.id.toolbar_title);
+            textViewToChange.setText("SETTINGS");
             SettingsActivity SettingsActivityFragment = new SettingsActivity();
             FragmentManager manager = getSupportFragmentManager();
             manager.beginTransaction().replace(R.id.content_frame,
@@ -124,13 +139,17 @@ public class DrawerMain extends AppCompatActivity implements NavigationView.OnNa
                     SettingsActivityFragment.getTag()).commit();
 
         } else if (id == R.id.logout) {
-
+            Intent intent = new Intent(this, mainLogin.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         }
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+
 
     }
 

@@ -12,9 +12,9 @@
     <string name="loading">Loading…</string>
     <string name="logout">Logout</string>
     <string name="my_places">My Places</string>
-    <string name="scale">Scale</string>
-    <string name="vibration">Vibrating</string>
-    <string name="voice">Voice</string>
+    <string name="scale">SCALE</string>
+    <string name="vibration">VIBRATING</string>
+    <string name="voice">VOICE</string>
     <string name="clean">Clean History</string>
     <string name="settings">SETTINGS</string>
     <string name="about">ABOUT</string>

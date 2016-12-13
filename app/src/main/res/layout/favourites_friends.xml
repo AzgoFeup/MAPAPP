@@ -2,58 +2,22 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <android.support.v7.widget.Toolbar
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:theme="?attr/actionBarTheme"
-        android:minHeight="?attr/actionBarSize"
-        android:id="@+id/favourites_toolbar"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
-
-    <Button
-        android:layout_width="11dp"
-        android:layout_height="20dp"
-        android:id="@+id/back_arrow"
-        android:src="@drawable/white_arrow"
-        android:adjustViewBounds="true"
-        android:cropToPadding="false"
-        android:scaleType="fitXY"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/white_arrow"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:text="FAVOURITES"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="7dp"
-        android:id="@+id/favourites_text"
-        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-        android:layout_marginStart="21dp"
-        android:textColor="@color/cardview_light_background"
-        android:layout_toEndOf="@+id/back_arrow" />
 
     <Button
         android:layout_width="110dp"
         android:layout_height="24dp"
         android:id="@+id/my_places"
         android:layout_marginTop="91dp"
-        android:layout_marginStart="69dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
+        android:layout_marginLeft="55dp"
         android:background="@drawable/myplaces_w"/>
 
-    <View
-        android:id="@+id/square_1"
-        android:background="@drawable/square_favourites"
-        android:layout_below="@+id/my_places"
-        android:layout_height="110dp"
+    <Button
         android:layout_width="110dp"
-        android:layout_marginStart="70dp"
-        android:layout_marginTop="23dp" />
+        android:layout_height="24dp"
+        android:id="@+id/my_friends"
+        android:layout_marginTop="91dp"
+        android:layout_marginLeft="225dp"
+        android:background="@drawable/myfriends_b" />
 
     <View
         android:id="@+id/square_2"
@@ -64,13 +28,13 @@
         android:layout_marginTop="23dp"
         android:layout_alignStart="@+id/my_friends" />
 
-    <Button
+    <View
+        android:id="@+id/square_1"
+        android:background="@drawable/square_favourites"
+        android:layout_height="110dp"
         android:layout_width="110dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="13dp"
-        android:id="@+id/my_friends"
-        android:background="@drawable/myfriends_b"
-        android:layout_above="@+id/square_1"
-        android:layout_toEndOf="@+id/favourites_text" />
+        android:layout_alignTop="@+id/square_2"
+        android:layout_alignStart="@+id/my_places" />
+
 
 </RelativeLayout>

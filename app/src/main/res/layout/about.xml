@@ -7,39 +7,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/login">
 
-    <android.support.v7.widget.Toolbar
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:theme="?attr/actionBarTheme"
-        android:minHeight="?attr/actionBarSize"
-        android:id="@+id/toolbar2" />
-
     <!--Cabeçalho-->
-
-    <Button
-        android:layout_width="11dp"
-        android:layout_height="20dp"
-        android:id="@+id/back_arrow"
-        android:src="@drawable/white_arrow"
-        android:adjustViewBounds="true"
-        android:cropToPadding="false"
-        android:scaleType="fitXY"
-        android:layout_marginStart="28dp"
-        android:background="@drawable/white_arrow"
-        android:layout_alignTop="@+id/about_text"
-        />
-
-    <TextView
-        android:text="@string/about"
-        android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:layout_marginTop="7dp"
-        android:id="@+id/about_text"
-        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-        android:layout_marginStart="21dp"
-        android:textColor="@color/cardview_light_background"
-        android:layout_toEndOf="@+id/back_arrow" />
 
     <!-- Texto -->
 
@@ -48,11 +16,13 @@
         android:id="@+id/imageView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="120dp"
         android:src="@drawable/login_logo"
-        android:layout_below="@+id/toolbar2"
-        android:layout_centerHorizontal="true"
-        />
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="34dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="36dp" />
 
     <TextView
         android:text="@string/aboutText"
@@ -63,8 +33,11 @@
         android:fontFamily="sans-serif-condensed"
         android:textColor="@color/cardview_light_background"
         android:textAlignment="center"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="58dp" />
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/imageView1"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="18dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="26dp" />
 
 </RelativeLayout>
