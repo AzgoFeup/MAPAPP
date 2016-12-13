@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.azgo.mapapp.fragments.AboutActivity;
 import com.azgo.mapapp.fragments.FavouritesActivity;
 import com.azgo.mapapp.fragments.HistoryActivity;
+import com.azgo.mapapp.fragments.MapActivity;
 import com.azgo.mapapp.fragments.SettingsActivity;
 import com.facebook.login.LoginManager;
 import com.google.firebase.auth.FirebaseAuth;
@@ -49,6 +50,11 @@ public class DrawerMain extends AppCompatActivity implements NavigationView.OnNa
             drawer.addDrawerListener(toggle);
            toggle.syncState();
 
+            MapActivity MapActivityFragment = new MapActivity();
+            FragmentManager manager = getSupportFragmentManager();
+            manager.beginTransaction().replace(R.id.content_frame,
+                    MapActivityFragment,
+                    MapActivityFragment.getTag()).commit();
 
 
             navigationView = (NavigationView) findViewById(R.id.nvView);
@@ -138,11 +144,20 @@ public class DrawerMain extends AppCompatActivity implements NavigationView.OnNa
                     SettingsActivityFragment,
                     SettingsActivityFragment.getTag()).commit();
 
+        } else if (id == R.id.map) {
+            final TextView textViewToChange = (TextView) findViewById(R.id.toolbar_title);
+            textViewToChange.setText("MapApp");
+            MapActivity MapActivityFragment = new MapActivity();
+            FragmentManager manager = getSupportFragmentManager();
+            manager.beginTransaction().replace(R.id.content_frame,
+                    MapActivityFragment,
+                    MapActivityFragment.getTag()).commit();
         } else if (id == R.id.logout) {
             Intent intent = new Intent(this, mainLogin.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }
+
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
