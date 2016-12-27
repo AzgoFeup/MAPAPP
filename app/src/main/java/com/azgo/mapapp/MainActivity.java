@@ -37,6 +37,7 @@ import com.facebook.login.LoginManager;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -71,6 +72,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, SensorEventListener {
+
     PolylineOptions linePath = new PolylineOptions();
     GoogleMap mGoogleMap;
     SupportMapFragment mapFrag;
@@ -102,6 +104,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //Communicação
     public TCPClient mTcpClient;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+
     private static boolean messageReceived;
     private static String Message;
     boolean logoutPressed = false;
@@ -125,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mRotVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
+
         // Create the LocationRequest object
         /*mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -137,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //Communication Stuff
 
+        mAuth = FirebaseAuth.getInstance();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             recAsync = new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             senAsync = new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
@@ -945,7 +952,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //Envia coordenadas durante 20 seg. O ideal é enviar até ser feito o logout.
 
                 try {
-                    Log.e("ASYNC", "Sending Cordenadas: " +mCurrentLocation);
+                    Log.e("ASYNC", "Sending Coordinates$: " +mCurrentLocation);
                     if (mCurrentLocation != null) {
                         Double latitude_enviar = mCurrentLocation.getLatitude();
 
@@ -961,8 +968,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                         else if (TCPClient.connected){
                             connection = true;
-                            mTcpClient.sendMessage("Coordenates$" + coordenadas);
-                            Log.e("ASYNC", "Sending Cordenadas: " + coordenadas);
+                            mTcpClient.sendMessage("Coordinates$" + mAuth.getCurrentUser().getEmail() + "$"  + coordenadas);
+                            Log.e("ASYNC", "Sending Coordinates$: " + coordenadas);
                         }
                         else
                         {
@@ -971,7 +978,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     }
                     else {
-                        Log.e("MainActivity", "AsyncTask Sending: Coordenadas não enviadas");
+                        Log.e("MainActivity", "AsyncTask Sending: Wrong Coordinates");
                     }
                     Thread.sleep(2000);
 
@@ -1005,7 +1012,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onCancelled() {
             super.onCancelled();
             connection = false;
-            mTcpClient.stopClient();
+            if( mTcpClient != null) mTcpClient.stopClient();
 
             Log.e("ASYNC", "CANCELED: " );
             return ;
@@ -1048,8 +1055,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPreExecute() {
             super.onPreExecute();
             Thread.currentThread().setName("Logout-async");
-            this.dialog.setMessage("Login out...");
-            this.dialog.show();
+           //this.dialog.setMessage("Login out...");
+            //this.dialog.show();
             Log.e("AsyncTask", "Processing created");
         }
 
@@ -1059,14 +1066,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             Log.e("AsyncTask", "onPostExecute");
 
-                this.dialog.dismiss();
+                //this.dialog.dismiss();
                 goLoginScreen();
                 if (this.isCancelled()) cancel(true);
 
             }
         }
-
-
 
     public class waitConnection extends AsyncTask<String,String,String> {
 
@@ -1078,7 +1083,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             while (!TCPClient.connected) {
                 try {
                     Thread.currentThread().sleep(1000);
-                    mTcpClient.sendMessage("Login");
+                    mTcpClient.sendMessage("Login$"+mAuth.getCurrentUser().getDisplayName()+"$"+mAuth.getCurrentUser().getEmail());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -1092,8 +1097,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPreExecute() {
             super.onPreExecute();
             Thread.currentThread().setName("Logout-async");
-            this.dialog.setMessage("Reconnecting...");
-            this.dialog.show();
+            //this.dialog.setMessage("Reconnecting...");
+            //this.dialog.show();
             Log.e("AsyncTask", "Processing created");
         }
 
@@ -1101,9 +1106,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPostExecute(String value) {
             super.onPostExecute(value);
             Log.e("AsyncTask", "onPostExecute");
-            this.dialog.dismiss();
+            //this.dialog.dismiss();
 
         }
     }
+
+
+
 
 }

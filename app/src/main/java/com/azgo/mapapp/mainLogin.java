@@ -2,17 +2,26 @@ package com.azgo.mapapp;
 
 
 
+import android.*;
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.os.AsyncTaskCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -65,7 +74,11 @@ public class mainLogin extends AppCompatActivity implements
     private static boolean messageReceived;
     private static boolean errorLogin = false;
 
-    //Asinc Task
+    //telefone
+
+    String mPhoneNumber;
+
+    //Async Task
     public AsyncTask login;
     public AsyncTask reception;
 
@@ -83,8 +96,24 @@ public class mainLogin extends AppCompatActivity implements
         FacebookSdk.sdkInitialize(getApplicationContext());
 
         setContentView(R.layout.activity_login);
-        //SERVER
+        //get permission for contacts
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            getPermissionToReadUserContacts();
+        }
 
+        //get permission to read SMS ??
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            getPermissionToReadSMS();
+        }
+
+        TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+
+        mPhoneNumber = tMgr.getLine1Number();
+        //if (mPhoneNumber == )
+        //can return null
+
+        //SERVER
         if (mTcpClient == null) {
             Log.e("mainLogin", "Connecting to Server");
 
@@ -383,6 +412,8 @@ public class mainLogin extends AppCompatActivity implements
 
     }
 
+
+
     public class connectTask extends AsyncTask<String,String,TCPClient> {
 
         @Override
@@ -489,7 +520,7 @@ public class mainLogin extends AppCompatActivity implements
                     );
                     //TODO: O que enviar para o server?
                     mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName()
-                            + "$" + mAuth.getCurrentUser().getEmail());
+                            + "$" + mAuth.getCurrentUser().getEmail() +"$" + mPhoneNumber);
 
                     // Waits for the server response
                     while (!messageReceived) ;
@@ -510,8 +541,8 @@ public class mainLogin extends AppCompatActivity implements
         protected void onPreExecute() {
             super.onPreExecute();
             Thread.currentThread().setName("Login-async");
-            this.dialog.setMessage("Processing...");
-            this.dialog.show();
+            //this.dialog.setMessage("Processing...");
+           //this.dialog.show();
             Log.e("AsyncTask", "Processing created");
         }
 
@@ -521,7 +552,7 @@ public class mainLogin extends AppCompatActivity implements
 
             Log.e("AsyncTask-login", "onPostExecute");
             if(value.equals("True")) {
-                this.dialog.dismiss();
+               // this.dialog.dismiss();
                 reception.cancel(true);
                 Log.e("AsyncTask", "onPostExecute");
                 Intent intent = new Intent(mainLogin.this, MainActivity.class);
@@ -555,6 +586,65 @@ public class mainLogin extends AppCompatActivity implements
         alert.show();
     }
 
+    // Identifier for the permission request
+    private static final int READ_CONTACTS_PERMISSIONS_REQUEST = 1;
+    // Called when the user is performing an action which requires the app to read the
+    // user's contacts
+    @TargetApi(Build.VERSION_CODES.M)
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void getPermissionToReadUserContacts() {
+        // 1) Use the support library version ContextCompat.checkSelfPermission(...) to avoid
+        // checking the build version since Context.checkSelfPermission(...) is only available
+        // in Marshmallow
+        // 2) Always check for permission (even if permission has already been granted)
+        // since the user can revoke permissions at any time through Settings
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // The permission is NOT already granted.
+            // Check if the user has been asked about this permission already and denied
+            // it. If so, we want to give more explanation about why the permission is needed.
+            if (shouldShowRequestPermissionRationale(
+                    android.Manifest.permission.READ_CONTACTS)) {
+                // Show our own UI to explain to the user why we need to read the contacts
+                // before actually requesting the permission and showing the default UI
+            }
+
+            // Fire off an async request to actually get the permission
+            // This will show the standard permission request dialog UI
+            requestPermissions(new String[]{android.Manifest.permission.READ_CONTACTS},
+                    READ_CONTACTS_PERMISSIONS_REQUEST);
+        }
+    }
+    private static final int READ_SMS_PERMISSIONS_REQUEST = 1;
+    // Called when the user is performing an action which requires the app to read the
+    // user's contacts
+    @TargetApi(Build.VERSION_CODES.M)
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void getPermissionToReadSMS() {
+        // 1) Use the support library version ContextCompat.checkSelfPermission(...) to avoid
+        // checking the build version since Context.checkSelfPermission(...) is only available
+        // in Marshmallow
+        // 2) Always check for permission (even if permission has already been granted)
+        // since the user can revoke permissions at any time through Settings
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // The permission is NOT already granted.
+            // Check if the user has been asked about this permission already and denied
+            // it. If so, we want to give more explanation about why the permission is needed.
+            if (shouldShowRequestPermissionRationale(
+                    Manifest.permission.READ_SMS)) {
+                // Show our own UI to explain to the user why we need to read the contacts
+                // before actually requesting the permission and showing the default UI
+            }
+
+            // Fire off an async request to actually get the permission
+            // This will show the standard permission request dialog UI
+            requestPermissions(new String[]{android.Manifest.permission.READ_SMS},
+                    READ_SMS_PERMISSIONS_REQUEST);
+        }
+    }
 
 
 }
