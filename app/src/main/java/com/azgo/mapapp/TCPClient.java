@@ -40,6 +40,9 @@ class TCPClient implements Runnable {
     static public boolean connected = false;
     static public Thread t;
 
+    private Object lockArray1 = new Object();
+    private Object lockArray2 = new Object();
+
     //TODO : FAZER ISTO MAIS FIAVEL
 
     private static TCPClient instance= null;
@@ -154,54 +157,54 @@ class TCPClient implements Runnable {
         mRun = true;
         int nullmessage = 0;
 
+        try {
             try {
-                try {
-                    startSocket();
-                } catch (SocketTimeoutException | SocketException e ) {
-                    Log.e("TCPClient", "run(): SocketTimeoutException", e);
-                    socketTimeout = true;
+                startSocket();
+            } catch (SocketTimeoutException | SocketException e ) {
+                Log.e("TCPClient", "run(): SocketTimeoutException", e);
+                socketTimeout = true;
 
-                    return;
-                }
-                Log.d("TCPClient", "run(): Started!");
-
-                //in this while the client listens for the messages sent by the server
-                while (mRun) {
-                    Log.d("TCPClient", "run(): Receiving....");
-                    serverMessage = in.readLine();
-                    Log.d("TCPClient", "run(): Received: " + serverMessage);
-
-                    if (serverMessage != null) {
-                        nullmessage = 0;
-                        //call the method messageReceived from MyActivity class
-                        messageReceived(serverMessage);
-                        //messageAdded = true;
-                    }
-                    else if(nullmessage == 1000) { //Great number???
-                        throw new Exception("No Connection");
-                    }
-                    else {
-                        nullmessage++;
-                    }
-                    serverMessage = null;
-                }
-
-            }  catch (Exception e) {
-                stopClient();
-                Log.e("TCPClient", "run(): Generic Error", e);
+                return;
             }
-            finally {
-                //the socket must be closed. It is not possible to reconnect to this socket
-                // after it is closed, which means a new socket instance has to be created.
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    //TODO
-                    e.printStackTrace();
-                }
-                Log.e("TCPClient", "Finally: CLOSING");
+            Log.d("TCPClient", "run(): Started!");
 
+            //in this while the client listens for the messages sent by the server
+            while (mRun) {
+                Log.d("TCPClient", "run(): Receiving....");
+                serverMessage = in.readLine();
+                Log.d("TCPClient", "run(): Received: " + serverMessage);
+
+                if (serverMessage != null) {
+                    nullmessage = 0;
+                    //call the method messageReceived from MyActivity class
+                    messageReceived(serverMessage);
+                    //messageAdded = true;
+                }
+                else if(nullmessage == 1000) { //Great number???
+                    throw new Exception("No Connection");
+                }
+                else {
+                    nullmessage++;
+                }
+                serverMessage = null;
             }
+
+        }  catch (Exception e) {
+            stopClient();
+            Log.e("TCPClient", "run(): Generic Error", e);
+        }
+        finally {
+            //the socket must be closed. It is not possible to reconnect to this socket
+            // after it is closed, which means a new socket instance has to be created.
+            try {
+                socket.close();
+            } catch (IOException e) {
+                //TODO
+                e.printStackTrace();
+            }
+            Log.e("TCPClient", "Finally: CLOSING");
+
+        }
 
 
     }
@@ -219,13 +222,17 @@ class TCPClient implements Runnable {
         Log.e("MENSAGEM" , items[0]);
         if(items[0].equals("Login")) {
             Log.e("TCPClient", "messageReceived: is login");
-            loginArray.add(message);
-            loginReceived = true;
+            synchronized (lockArray1){
+                loginArray.add(message);
+                loginReceived = true;
+            }
         }
         else if(items[0].equals("Coordinates")) {
             Log.e("TCPClient", "messageReceived: is coordinates");
-            comunicationArray.add(message);
-            comunicationReceived = true;
+            synchronized (lockArray2) {
+                comunicationArray.add(message);
+                comunicationReceived = true;
+            }
         }
     }
 

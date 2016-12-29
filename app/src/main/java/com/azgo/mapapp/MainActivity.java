@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private AsyncTask logAsync;
     private AsyncTask waitConnection;
 
+    private Object lockmessa = new Object();
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -645,7 +646,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }*/
         //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                //mGoogleApiClient);
+        //mGoogleApiClient);
 
         mapFrag = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -929,8 +930,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             //in the arrayList we add the messaged received from server
-            Message = values[0];
-            messageReceived = true;
+            synchronized (lockmessa) {
+                Message = values[0];
+                messageReceived = true;
+            }
             Log.e("MainActivity", "onProgressUpdate: " + Message);
             // notify the adapter that the data set has changed. This means that new message received
             // from server was added to the list
@@ -949,7 +952,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //long startTime = System.currentTimeMillis();
             //while((System.currentTimeMillis()-startTime)<20000) {
             while(!logoutPressed) {
-            //Envia coordenadas durante 20 seg. O ideal é enviar até ser feito o logout.
+                //Envia coordenadas durante 20 seg. O ideal é enviar até ser feito o logout.
 
                 try {
                     Log.e("ASYNC", "Sending Coordinates$: " +mCurrentLocation);
@@ -1055,7 +1058,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPreExecute() {
             super.onPreExecute();
             Thread.currentThread().setName("Logout-async");
-           //this.dialog.setMessage("Login out...");
+            //this.dialog.setMessage("Login out...");
             //this.dialog.show();
             Log.e("AsyncTask", "Processing created");
         }
@@ -1066,12 +1069,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             Log.e("AsyncTask", "onPostExecute");
 
-                //this.dialog.dismiss();
-                goLoginScreen();
-                if (this.isCancelled()) cancel(true);
+            //this.dialog.dismiss();
+            goLoginScreen();
+            if (this.isCancelled()) cancel(true);
 
-            }
         }
+    }
 
     public class waitConnection extends AsyncTask<String,String,String> {
 

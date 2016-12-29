@@ -83,6 +83,7 @@ public class mainLogin extends AppCompatActivity implements
     public AsyncTask reception;
 
     private Object lock1 = new Object();
+    private Object lockmess = new Object();
 
     //MISC
     private ProgressBar mProgress;
@@ -400,12 +401,12 @@ public class mainLogin extends AppCompatActivity implements
         Log.e("mainLogin", "Async Task - login");
 
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                Log.e("mainLogin", "Async Task: login - if");
-                login = new login().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-            } else {
-                Log.e("mainLogin", "Async Task: login - else");
-                login = new login().execute("");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            Log.e("mainLogin", "Async Task: login - if");
+            login = new login().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+        } else {
+            Log.e("mainLogin", "Async Task: login - else");
+            login = new login().execute("");
 
         }
 
@@ -465,8 +466,11 @@ public class mainLogin extends AppCompatActivity implements
 
             //in the arrayList we add the messaged received from server
             Log.d("AsyncTask", values[0]);
-            Message = values[0];
-            messageReceived = true;
+
+            synchronized (lockmess) {
+                Message = values[0];
+                messageReceived = true;
+            }
             // notify the adapter that the data set has changed. This means that new message received
             // from server was added to the list
 
@@ -505,35 +509,35 @@ public class mainLogin extends AppCompatActivity implements
                     Thread.currentThread().getName()+ " ]", "login(): Entering while");
 
 
-                while (true) {
-                    Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
-                            Thread.currentThread().getName() + " ]", "checking mTCPClient: "
-                            + mTcpClient);
+            while (true) {
+                Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                        Thread.currentThread().getName() + " ]", "checking mTCPClient: "
+                        + mTcpClient);
 
-                    while (mTcpClient == null) {
-                        if (errorLogin) return "False";
-                    }
-
-
-                    Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
-                            Thread.currentThread().getName() + " ]", "Sending login to server "
-                    );
-                    //TODO: O que enviar para o server?
-                    mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName()
-                            + "$" + mAuth.getCurrentUser().getEmail() +"$" + mPhoneNumber);
-
-                    // Waits for the server response
-                    while (!messageReceived) ;
-                    Log.e("login-AsyncTask [ " + Thread.currentThread().getId() + " | " +
-                            Thread.currentThread().getName() + " ]", "Message Received");
-                    messageReceived = false;
-
-                    //Login Done?
-                    String[] items = Message.split("\\$");
-                    if (items[0].equals("Login")) break;
+                while (mTcpClient == null) {
+                    if (errorLogin) return "False";
                 }
 
-                return "True";
+
+                Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                        Thread.currentThread().getName() + " ]", "Sending login to server "
+                );
+                //TODO: O que enviar para o server?
+                mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName()
+                        + "$" + mAuth.getCurrentUser().getEmail() +"$" + mPhoneNumber);
+
+                // Waits for the server response
+                while (!messageReceived) ;
+                Log.e("login-AsyncTask [ " + Thread.currentThread().getId() + " | " +
+                        Thread.currentThread().getName() + " ]", "Message Received");
+                messageReceived = false;
+
+                //Login Done?
+                String[] items = Message.split("\\$");
+                if (items[0].equals("Login")) break;
+            }
+
+            return "True";
 
         }
 
@@ -542,7 +546,7 @@ public class mainLogin extends AppCompatActivity implements
             super.onPreExecute();
             Thread.currentThread().setName("Login-async");
             //this.dialog.setMessage("Processing...");
-           //this.dialog.show();
+            //this.dialog.show();
             Log.e("AsyncTask", "Processing created");
         }
 
@@ -552,7 +556,7 @@ public class mainLogin extends AppCompatActivity implements
 
             Log.e("AsyncTask-login", "onPostExecute");
             if(value.equals("True")) {
-               // this.dialog.dismiss();
+                // this.dialog.dismiss();
                 reception.cancel(true);
                 Log.e("AsyncTask", "onPostExecute");
                 Intent intent = new Intent(mainLogin.this, MainActivity.class);
