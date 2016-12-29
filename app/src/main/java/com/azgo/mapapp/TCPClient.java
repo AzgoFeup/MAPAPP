@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Queue;
 
 class TCPClient implements Runnable {
@@ -31,17 +32,20 @@ class TCPClient implements Runnable {
     private boolean mRun = false;
     public boolean loginReceived = false;
     public boolean comunicationReceived = false;
+    public boolean friendsReceived = false;
     private PrintWriter out;
     private BufferedReader in;
     public Socket socket;
     static Queue<String> loginArray;
     static Queue<String> comunicationArray;
+    static Queue<String> friendsArray;
     public boolean socketTimeout = false;
     static public boolean connected = false;
     static public Thread t;
 
     private Object lockArray1 = new Object();
     private Object lockArray2 = new Object();
+    private Object lockArray3 = new Object();
 
     //TODO : FAZER ISTO MAIS FIAVEL
 
@@ -66,6 +70,7 @@ class TCPClient implements Runnable {
             instance = new TCPClient();
             loginArray = new LinkedList<>();
             comunicationArray = new LinkedList<>();
+            friendsArray = new LinkedList<>();
             t = new Thread(instance);
             t.start();
 
@@ -116,7 +121,7 @@ class TCPClient implements Runnable {
         SocketAddress sockaddr = new InetSocketAddress(SERVERIP, SERVERPORT);
 
         socket = new Socket();
-        socket.connect(sockaddr,10000); //TODO: Change value
+        socket.connect(sockaddr,50000); //TODO: Change value
 
         //create output streamer
         out = new PrintWriter(new BufferedWriter(
@@ -232,6 +237,13 @@ class TCPClient implements Runnable {
             synchronized (lockArray2) {
                 comunicationArray.add(message);
                 comunicationReceived = true;
+            }
+        }
+        else if(items[0].equals("Friends")) {
+            Log.e("TCPClient", "messageReceived is friends");
+            synchronized (lockArray3){
+                friendsArray.add(message);
+                friendsReceived = true;
             }
         }
     }

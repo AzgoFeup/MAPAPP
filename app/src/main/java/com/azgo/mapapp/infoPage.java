@@ -36,7 +36,7 @@ public class infoPage extends AppCompatActivity{
     private ImageView mImageView;
     String phoneNumber;
     ListView lv;
-    ArrayList<String> aa= new ArrayList<String>();
+    static ArrayList<String> aa= new ArrayList<String>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
