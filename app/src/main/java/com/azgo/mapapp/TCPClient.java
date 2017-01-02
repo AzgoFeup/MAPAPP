@@ -195,6 +195,7 @@ class TCPClient implements Runnable {
             }
 
         }  catch (Exception e) {
+
             stopClient();
             Log.e("TCPClient", "run(): Generic Error", e);
         }
@@ -202,6 +203,7 @@ class TCPClient implements Runnable {
             //the socket must be closed. It is not possible to reconnect to this socket
             // after it is closed, which means a new socket instance has to be created.
             try {
+                stopClient();
                 socket.close();
             } catch (IOException e) {
                 //TODO
