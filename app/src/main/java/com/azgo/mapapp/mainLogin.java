@@ -423,12 +423,12 @@ public class mainLogin extends AppCompatActivity implements
 
             //we create a TCPClient object and
             Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
-                    "connectTask: Creating mTcpClient)");
+                    "connectTask: Creating mTcpClient");
             synchronized (lock1) {
                 mTcpClient = TCPClient.getInstance();
             }
             Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
-                    "connectTask: mTcpClient is " + mTcpClient);
+                    "connectTask: returned mTcpClient");
 
 
             while(!mTcpClient.connected) { //Best way to do?
@@ -440,7 +440,7 @@ public class mainLogin extends AppCompatActivity implements
             }
 
             Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
-                    "connectTask: mTcpClient is now " + mTcpClient);
+                    "connectTask: mTcpClient is now Connected");
             //espera enquanto nao recebe nada
 
             while (!mTcpClient.loginReceived) ;

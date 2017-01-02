@@ -62,7 +62,7 @@ class TCPClient implements Runnable {
      * Creates a new instance of this class.
      * @return The new instance.
      */
-    static TCPClient getInstance() {
+    static synchronized TCPClient getInstance() {
 
         if (instance == null) {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
@@ -85,7 +85,7 @@ class TCPClient implements Runnable {
      * Sends the message entered by client to the server
      * @param message text entered by client
      */
-    void sendMessage(final String message){
+    public void sendMessage(final String message){
         if (out == null || connected == false)
         { //TODO: Check errors
             Log.d("TCP Client", "Reconcting" );
@@ -112,7 +112,7 @@ class TCPClient implements Runnable {
      *
      * @throws Exception
      */
-    public void startSocket() throws Exception {
+    public synchronized void startSocket() throws Exception {
         Log.d("TCPClient", "run(): Connecting to "+ SERVERIP);
         //InetAddress serverAddr = InetAddress.getByName(SERVERIP);
 
@@ -137,7 +137,7 @@ class TCPClient implements Runnable {
     }
 
 
-    public void stopClient(){
+    public synchronized void stopClient(){
         try {
             Log.e("TCPClient", "CLOSING");
             if(socket != null)socket.close();
