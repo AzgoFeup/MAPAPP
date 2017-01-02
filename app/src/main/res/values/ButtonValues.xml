@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="states">
+        <attr name="settings_on" format="boolean" />
+        <attr name="settings_off" format="boolean" />
+    </declare-styleable>
+</resources>

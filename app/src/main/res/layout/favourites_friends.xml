@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+
+    <ImageView
+        android:layout_width="110dp"
+        android:layout_height="24dp"
+        android:id="@+id/my_places"
+        android:layout_marginTop="91dp"
+        android:layout_marginLeft="55dp"
+        app:srcCompat="@drawable/myplaces_w"/>
+
+    <ImageView
+        android:layout_width="110dp"
+        android:layout_height="24dp"
+        android:id="@+id/my_friends"
+        android:layout_marginTop="91dp"
+        android:layout_marginLeft="225dp"
+        app:srcCompat="@drawable/myfriends_b" />
+
+    <View
+        android:id="@+id/square_2"
+        android:background="@drawable/square_favourites"
+        android:layout_below="@+id/my_friends"
+        android:layout_height="110dp"
+        android:layout_width="110dp"
+        android:layout_marginTop="23dp"
+        android:layout_alignStart="@+id/my_friends" />
+
+    <View
+        android:id="@+id/square_1"
+        android:background="@drawable/square_favourites"
+        android:layout_height="110dp"
+        android:layout_width="110dp"
+        android:layout_alignTop="@+id/square_2"
+        android:layout_alignStart="@+id/my_places" />
+
+
+</RelativeLayout>
