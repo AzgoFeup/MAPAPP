@@ -12,5 +12,25 @@
     <string name="loading">Loading…</string>
     <string name="logout">Logout</string>
     <string name="nav">Navigate Here</string>
+    <string name="my_places">My Places</string>
+    <string name="scale">SCALE</string>
+    <string name="vibration">VIBRATING</string>
+    <string name="voice">VOICE</string>
+    <string name="clean">Clean History</string>
+    <string name="settings">SETTINGS</string>
+    <string name="about">ABOUT</string>
+    <string name="aboutText"> AZGO is the app to help navigate inside big new buildings! You can
+        meet your friends or play stalker and follow them around.
+    Developed by an awesome team of experts from the University of Porto</string>
+
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
 
 </resources>
