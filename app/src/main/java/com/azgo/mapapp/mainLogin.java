@@ -51,6 +51,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import java.util.NoSuchElementException;
+
 public class mainLogin extends AppCompatActivity implements
         View.OnClickListener
 {
@@ -443,16 +445,23 @@ public class mainLogin extends AppCompatActivity implements
                     "connectTask: mTcpClient is now Connected");
             //espera enquanto nao recebe nada
 
-            while (!mTcpClient.loginReceived) ;
+            synchronized (lock1) {
+                while (!mTcpClient.loginReceived) ;
 
 
-            mTcpClient.loginReceived = false;
+                mTcpClient.loginReceived = false;
 
-            Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
-                    "connectTask: mTcpClient.array= " + mTcpClient.loginArray.peek());
+                Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
+                        "connectTask: mTcpClient.array= " + TCPClient.loginArray.peek());
 
-            publishProgress(mTcpClient.loginArray.remove());
-            mTcpClient.loginReceived = false;
+                try {
+                    publishProgress(TCPClient.loginArray.remove());
+                } catch (NoSuchElementException e) {
+                    Log.e("AsyncTask [" + Thread.currentThread().getId() + "]" ,
+                            "Easy Fix");
+                }
+                mTcpClient.loginReceived = false;
+            }
 
 
             return null;
@@ -524,6 +533,7 @@ public class mainLogin extends AppCompatActivity implements
                 TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
                 mPhoneNumber = tMgr.getLine1Number();
+
                 //TODO: O que enviar para o server?
                 mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName()
                         + "$" + mAuth.getCurrentUser().getEmail() +"$" + mPhoneNumber);

@@ -43,9 +43,9 @@ class TCPClient implements Runnable {
     static public boolean connected = false;
     static public Thread t;
 
-    private Object lockArray1 = new Object();
-    private Object lockArray2 = new Object();
-    private Object lockArray3 = new Object();
+    public static Object lockArray1 = new Object();
+    public static Object lockArray2 = new Object();
+    public static Object lockArray3 = new Object();
 
     //TODO : FAZER ISTO MAIS FIAVEL
 
@@ -88,11 +88,16 @@ class TCPClient implements Runnable {
     public void sendMessage(final String message){
         if (out == null || connected == false)
         { //TODO: Check errors
-            Log.d("TCP Client", "Reconcting" );
+            Log.d("TCP Client", "Reconnecting" );
             t = new Thread(instance);
             t.start();
         }
         if (out != null && !out.checkError()) {
+            if(!connected)
+            {
+                Log.d("TCP Client", "S: Waiting for connection");
+                while(!connected);
+            }
             Log.d("TCP Client", "S: Sending" + message);
 
             new Thread(){
