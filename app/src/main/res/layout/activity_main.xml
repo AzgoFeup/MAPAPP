@@ -33,13 +33,19 @@
         android:id="@+id/map"
         android:layout_below="@+id/editText" />
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:srcCompat="@drawable/search"
+    <Button
+        android:layout_width="40dp"
+        android:layout_height="50dp"
+        app:background="@drawable/search"
         android:layout_above="@+id/map"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="10dp"
-        android:id="@+id/button" />
+        android:id="@+id/button"
+        android:src="@drawable/login_facebook"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:background="@drawable/search"
+        />
 
 </RelativeLayout>
