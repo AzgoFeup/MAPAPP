@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         final Button testButton = (Button) findViewById(R.id.startActivityButton);
         testButton.setTag(1);
-        testButton.setText("Navigate Here");
+        testButton.setBackgroundResource(R.drawable.navigate);
         testButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
