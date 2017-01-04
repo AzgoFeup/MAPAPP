@@ -374,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         }
 
-/*
+
         final Button testButton = (Button) findViewById(R.id.startActivityButton);
         testButton.setTag(1);
         testButton.setText("Navigate Here");
@@ -384,11 +384,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 final int status = (Integer) v.getTag();
                 if (status == 1) {
                     navigation(v);
-                    testButton.setText("Stop Navigation");
+                    testButton.setBackgroundResource(R.drawable.cancelnavigation);
                     navigation_on = 1;
                     v.setTag(0);
                 } else {
-                    testButton.setText("Navigate Here");
+                    testButton.setBackgroundResource(R.drawable.navigate);
                     stopNavigation(mCurrentLocation);
                     v.setTag(1);
                     navigation_on = 0;
