@@ -33,6 +33,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -354,21 +355,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         }
 
-/*
+
         final Button testButton = (Button) findViewById(R.id.startActivityButton);
         testButton.setTag(1);
-        testButton.setText("Navigate Here");
+        testButton.setBackgroundResource(R.drawable.navigate);
         testButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final int status = (Integer) v.getTag();
                 if (status == 1) {
                     navigation(v);
-                    testButton.setText("Stop Navigation");
+                    testButton.setBackgroundResource(R.drawable.cancelnavigation);
                     navigation_on = 1;
                     v.setTag(0);
                 } else {
-                    testButton.setText("Navigate Here");
+                    testButton.setBackgroundResource(R.drawable.navigate);
                     stopNavigation(mCurrentLocation);
                     v.setTag(1);
                     navigation_on = 0;
