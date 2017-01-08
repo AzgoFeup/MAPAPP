@@ -140,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AsyncTask friAsync;
     private AsyncTask logAsync;
     private AsyncTask waitConnection;
+    private AsyncTask meetTask;
     //static Queue<String> numbersArray = new LinkedList<>();
     static String friends = "Friends";
 
@@ -1069,6 +1070,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
+    /*
+     * Get the number from the contacts list
+     */
+    public void meetSend(){
+
+        String num = "123456789";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            Log.e("meetSend", "Meet - if" );
+            meetTask = new sendMeetRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, num);
+        } else {
+            Log.e("meetSend", "Meet - else" );
+            meetTask = new sendMeetRequest().execute(num);
+        }
+
+        meetReply();  //to be removed
+    }
+
+    public void meetReply(){
+        String[] items = mTcpClient.meetRArray.peek().split("\\$");
+        items[1] = "email_1@fe.up.pt"; //to be removed
+
+        String replyStatus = "OK"; // TODO: Take the reply from the user (OK/FAIL)
+        String reply = items[1]+ "$" + replyStatus;
+        mTcpClient.meetRArray.remove();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            Log.e("meetReply", "Meet - if" );
+            meetTask = new sendMeetReply().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, reply);
+        } else {
+            Log.e("meetReply", "Meet - else" );
+            meetTask = new sendMeetReply().execute(reply);
+        }
+    }
+
 
 ///COMUNICAÇÃO
 
@@ -1082,7 +1116,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             while(mTcpClient != null) {
 
-                while (!mTcpClient.comunicationReceived) ;
+                // Loop while doesn't receive
+                while ( (!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)) ;
 
                 synchronized (lockReception) {
                     if (!TCPClient.comunicationArray.isEmpty()) {
@@ -1091,7 +1126,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         publishProgress(TCPClient.comunicationArray.peek());
                         TCPClient.comunicationArray.remove();
                         mTcpClient.comunicationReceived = false;
-                    } else {
+                    }
+                    else if (!TCPClient.meetRArray.isEmpty()){
+                        Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.meetRArray.peek());
+                        publishProgress(TCPClient.meetRArray.peek());
+                        //TCPClient.meetRArray.remove();  //will be needed to the reply
+                        mTcpClient.meetRStatus = false;
+                    }
+                    else {
                         Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
                     }
                 }
@@ -1107,6 +1149,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Message = values[0];
                 messageReceived = true;
             }
+            //TODO: check message type and handle it
+            // MeetRequest$num -> Present the request PopUp
+            // Coordinates$OK -> What should we do here??
+
             Log.e("MainActivity", "onProgressUpdate: " + Message);
             // notify the adapter that the data set has changed. This means that new message received
             // from server was added to the list
@@ -1281,6 +1327,73 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.e("AsyncTask", "onPostExecute");
             //this.dialog.dismiss();
 
+        }
+    }
+
+    /*
+     * To call the async task do it like this
+     * String num = "xxxxxxxxx";
+     * meet = new sendMeetRequest().execute(num);
+     */
+    public class sendMeetRequest extends AsyncTask<String, String, String> {
+
+        @Override
+        protected String doInBackground(String... num) {
+            while (mTcpClient == null) ;
+
+            Log.e("ASYNC", "Sending MeetRequest to: "+ num[0]);
+            mTcpClient.meetStatus = true;
+            mTcpClient.sendMessage("Meet$" + num[0]);
+
+            //TODO: waiting message for the user (onProgressUpdate)
+            while(mTcpClient.meetStatus) publishProgress("Waiting");
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+
+
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+
+            Log.e("ASYNC", "CANCELED: " );
+            return ;
+        }
+    }
+
+    public class sendMeetReply extends AsyncTask<String, String, String> {
+
+        @Override
+        protected String doInBackground(String... reply) {
+            while (mTcpClient == null) ;
+
+            Log.e("ASYNC", "Sending MeetReply to: "+ reply[0]);
+            mTcpClient.meetStatus = true;
+            mTcpClient.sendMessage("MeetRequest$" + reply[0]);
+
+            //TODO: waiting message for the user (onProgressUpdate)
+            while(mTcpClient.meetStatus) publishProgress("Waiting");
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+
+
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+
+            Log.e("ASYNC", "CANCELED: " );
+            return ;
         }
     }
 

@@ -33,20 +33,25 @@ class TCPClient implements Runnable {
     public boolean loginReceived = false;
     public boolean comunicationReceived = false;
     public boolean friendsReceived = false;
+    public boolean meetStatus = false;
+    public boolean meetRStatus = false;
     private PrintWriter out;
     private BufferedReader in;
     public Socket socket;
     static Queue<String> loginArray;
     static Queue<String> comunicationArray;
     static Queue<String> friendsArray;
+    static Queue<String> meetArray;
+    static Queue<String> meetRArray;
     public boolean socketTimeout = false;
     static public boolean connected = false;
     static public Thread t;
 
-    public static Object lockArray1 = new Object();
-    public static Object lockArray2 = new Object();
-    public static Object lockArray3 = new Object();
-
+    private Object lockArray1 = new Object();
+    private Object lockArray2 = new Object();
+    private Object lockArray3 = new Object();
+    private Object lockArray4 = new Object();
+    private Object lockArray5 = new Object();
     //TODO : FAZER ISTO MAIS FIAVEL
 
     private static TCPClient instance= null;
@@ -71,6 +76,8 @@ class TCPClient implements Runnable {
             loginArray = new LinkedList<>();
             comunicationArray = new LinkedList<>();
             friendsArray = new LinkedList<>();
+            meetArray = new LinkedList<>();
+            meetRArray = new LinkedList<>();
             t = new Thread(instance);
             t.start();
 
@@ -251,6 +258,19 @@ class TCPClient implements Runnable {
             synchronized (lockArray3){
                 friendsArray.add(message);
                 friendsReceived = true;
+            }
+        }
+        else if(items[0].equals("Meet")){
+            synchronized (lockArray4){
+                meetArray.add(message);
+                meetStatus=false;   //true while wait for response
+            }
+        }
+        else if(items[0].equals("MeetRequest")){
+            synchronized (lockArray5){
+                meetRArray.add(message);
+                meetRStatus = false;   //true while wait for response
+
             }
         }
     }
