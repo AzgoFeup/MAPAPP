@@ -5,6 +5,7 @@ package com.azgo.mapapp;
 import android.*;
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,9 +25,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -54,6 +57,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 public class mainLogin extends AppCompatActivity implements
         View.OnClickListener
@@ -125,20 +129,21 @@ public class mainLogin extends AppCompatActivity implements
         TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         mPhoneNumber = tMgr.getLine1Number();
 
+        myPrefs = this.getSharedPreferences(
+                "com.azgo.mapapp", Context.MODE_PRIVATE);
+
+
        if(null == mPhoneNumber)
         {
             //get phone number from preferences
-            if(null == (mPhoneNumber = myPrefs.getString("number", "ERROR"))) {
-                myPrefsEditor.putString("number", "913099720");
-                myPrefsEditor.commit();
-
-                mPhoneNumber =  myPrefs.getString("number", "ERROR");
+            if((mPhoneNumber = myPrefs.getString("number", "ERROR")).equals("ERROR")) {
+                //get phone number
+                showDialogGetPhoneNumber();
             }
-            else Log.e("NUMBER1", mPhoneNumber);
         }
-        Log.e("Telephony", "mPhoneNumber: " + mPhoneNumber );
+        Log.e("PhoneNumber: ", mPhoneNumber);
 
-
+/*
         final AlertDialog.Builder builder = new AlertDialog.Builder(mainLogin.this);
         builder.setMessage("Phone Number: ");
         final EditText input = new EditText(mainLogin.this);
@@ -150,13 +155,11 @@ public class mainLogin extends AppCompatActivity implements
                         mPhoneNumber = input.getText().toString();
                     }
                 });
-
+*/
         //if (mPhoneNumber == )
         //can return null
 
-        myPrefs = this.getSharedPreferences(
-                "com.azgo.mapapp", Context.MODE_PRIVATE);
-        myPrefsEditor = myPrefs.edit();
+
 
         //SERVER
         if (mTcpClient == null) {
@@ -576,8 +579,8 @@ public class mainLogin extends AppCompatActivity implements
                         Thread.currentThread().getName() + " ]", "Sending login to server "
                 );
 
+                while(Objects.equals(mPhoneNumber, "ERROR") || mPhoneNumber == null);
 
-                //TODO: O que enviar para o server?
                 mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName()
                         + "$" + mAuth.getCurrentUser().getEmail() +"$" + mPhoneNumber);
 
@@ -648,6 +651,31 @@ public class mainLogin extends AppCompatActivity implements
         AlertDialog alert = builder.create();
         alert.show();
     }
+
+    void showDialogGetPhoneNumber(){
+
+
+
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setTitle("Please enter your number");
+        final EditText input = new EditText(this);
+        b.setView(input);
+        b.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int whichButton)
+            {
+                // SHOULD NOW WORK
+                Log.e("ALERT: ", input.getText().toString());
+                myPrefsEditor = myPrefs.edit();
+                mPhoneNumber = input.getText().toString();
+                myPrefsEditor.putString("number", mPhoneNumber);
+                myPrefsEditor.commit();
+            }
+        });
+        b.create().show();
+    }
+
 
     //For Preferences
 
