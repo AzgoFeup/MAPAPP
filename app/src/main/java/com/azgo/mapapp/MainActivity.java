@@ -133,13 +133,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static boolean messageReceived;
     private static String Message;
+    private static String[][] FriendsMessage;
     boolean logoutPressed = false;
     private AsyncTask senAsync;
     private AsyncTask recAsync;
     private AsyncTask friAsync;
     private AsyncTask logAsync;
     private AsyncTask waitConnection;
-    static Queue<String> numbersArray = new LinkedList<>();
+    //static Queue<String> numbersArray = new LinkedList<>();
+    static String friends = "Friends";
 
     private Object lockmessa = new Object();
     private Object lockfriends = new Object();
@@ -207,11 +209,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             recAsync = new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             senAsync = new backgroundSending().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-            //friAsync = new backgroundSendFriends().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            friAsync = new backgroundSendFriends().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         } else {
             recAsync = new backgroundReception().execute();
             senAsync = new backgroundSending().execute();
-            //friAsync = new backgroundSendFriends().execute();
+            friAsync = new backgroundSendFriends().execute();
         }
         //till were
 
@@ -238,21 +240,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //getnumbers
         Cursor phones = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
+        String separator = "$";
         while (phones.moveToNext())
         {
             String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-            //System.out.println(name + " "+phoneNumber);
-            //tirar espaços;
-            phoneNumber = phoneNumber.replaceAll("\\s+","");
-            // buscar ultimos 9 numeros
-            phoneNumber = phoneNumber.substring(phoneNumber.length() - 9);
-            System.out.println(name + " "+phoneNumber);
-            numbersArray.add(phoneNumber);
+            phoneNumber = phoneNumber.replaceAll("\\s+",""); //tirar espaços;
+            phoneNumber = phoneNumber.substring(phoneNumber.length() - 9); //buscar ultimos 9 numeros
+            String oldfriends = friends + separator + phoneNumber;
+            friends = oldfriends;
         }
+        //Log.e("AsyncFriends", "Sending Friends: " +friends);
         phones.close();// close cursor
-        //Log.e("AsyncFriends", numbersArray.peek());
-
     }
 
 
@@ -1084,7 +1083,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             while(mTcpClient != null) {
 
                 while (!mTcpClient.comunicationReceived) ;
-                
+
                 synchronized (lockReception) {
                     if (!TCPClient.comunicationArray.isEmpty()) {
                         Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.comunicationArray.peek());
@@ -1207,7 +1206,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             recAsync.cancel(true);
             senAsync.cancel(true);
-            //friAsync.cancel(true);
+            friAsync.cancel(true);
 
             Log.e("SignOut", "Async Cancel " + logoutPressed);
 
@@ -1285,43 +1284,61 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /*
+
     public class backgroundSendFriends extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... message) {
             while(mTcpClient == null);
-                Log.e("AsyncFriends", "Sending Friends$: " +numbersArray.peek());
-                allnums = infoPage.aa.peek();
-                String[] nums = allnums.split("\\$");
-                if () {
-                    mTcpClient.sendMessage("Friends$" + );
-                    Log.e("AsyncFriends", "Sending Friends$: " + ?);
-                }
-                else {
-                    Log.e("AsyncFriends", "Error sending Friends");
-                }
-                while (!mTcpClient.friendsReceived);
-                if (!TCPClient.friendsArray.isEmpty()) {
-                    Log.e("AsyncFriends", "Reception Friends: " + TCPClient.friendsArray.peek());
-                    publishProgress(TCPClient.friendsArray.peek());
-                    TCPClient.friendsArray.remove();
-                    mTcpClient.friendsReceived = false;
-                } else {
-                    Log.e("AsyncFriends", "Reception Friends: Error");
-                }
-            //}
+            while(friends == "Friends");
+
+            if (friends != "Friends") {
+                mTcpClient.sendMessage(friends);
+                Log.e("AsyncFriends", "Sending Friends: " +friends);
+            }
+            else {
+                Log.e("AsyncFriends", "Error sending Friends");
+            }
+
+            while (!mTcpClient.friendsReceived);
+
+            if (!TCPClient.friendsArray.isEmpty()) {
+
+                publishProgress(TCPClient.friendsArray.peek());
+                TCPClient.friendsArray.remove();
+                mTcpClient.friendsReceived = false;
+            } else {
+                Log.e("AsyncFriends", "Reception Friends: Error");
+            }
+
             return null;
         }
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             synchronized (lockfriends) {
-                Message = values[0];
+
+                String[] items = values[0].split("\\$");
+                int tam = items.length;
+                String[][] contacts = new String[tam-1][3];
+
+                for (String item : items)
+                {
+                    int i=0;
+                    if (i!=0) {
+                        String[] data = item.split("\\#");
+                        contacts[i-1][0] = data[0];
+                        contacts[i-1][1] = data[1];
+                        contacts[i-1][2] = data[2];
+                    }
+                    i++;
+                }
+
+                FriendsMessage = contacts;
                 messageReceived = true;
             }
-            Log.e("AsyncFriends", "onProgressUpdate: " + Message);
+            Log.e("AsyncFriends", "onProgressUpdate: " + FriendsMessage);
         }
     }
-*/
+
 
 }
