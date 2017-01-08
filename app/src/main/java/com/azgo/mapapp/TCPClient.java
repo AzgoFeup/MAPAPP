@@ -47,12 +47,11 @@ class TCPClient implements Runnable {
     static public boolean connected = false;
     static public Thread t;
 
-    private Object lockArray1 = new Object();
-    private Object lockArray2 = new Object();
-    private Object lockArray3 = new Object();
-    private Object lockArray4 = new Object();
-    private Object lockArray5 = new Object();
-    //TODO : FAZER ISTO MAIS FIAVEL
+    public static Object lockArray1 = new Object();
+    public static Object lockArray2 = new Object();
+    public static Object lockArray3 = new Object();
+    public static Object lockArray4 = new Object();
+    public static Object lockArray5 = new Object();
 
     private static TCPClient instance= null;
 
@@ -69,6 +68,7 @@ class TCPClient implements Runnable {
      */
     static synchronized TCPClient getInstance() {
 
+
         if (instance == null) {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
             Log.d("TCPClient", "Creating Instance");
@@ -80,10 +80,8 @@ class TCPClient implements Runnable {
             meetRArray = new LinkedList<>();
             t = new Thread(instance);
             t.start();
-
-            Log.d("TCPClient", "run");
-
         }
+
         Log.d("TCPClient", "Returning Instance");
         return instance;
     }
@@ -93,17 +91,18 @@ class TCPClient implements Runnable {
      * @param message text entered by client
      */
     public void sendMessage(final String message){
-        if (out == null || connected == false)
-        { //TODO: Check errors
+        if (out == null || !connected)
+        { //with errrors start again
             Log.d("TCP Client", "Reconnecting" );
-            t = new Thread(instance);
-            t.start();
+            getInstance();
         }
         if (out != null && !out.checkError()) {
             if(!connected)
             {
+                //with errrors start again
                 Log.d("TCP Client", "S: Waiting for connection");
-                while(!connected);
+                getInstance();
+                while (!connected);
             }
             Log.d("TCP Client", "S: Sending" + message);
 
@@ -128,12 +127,11 @@ class TCPClient implements Runnable {
         Log.d("TCPClient", "run(): Connecting to "+ SERVERIP);
         //InetAddress serverAddr = InetAddress.getByName(SERVERIP);
 
-        Log.d("TCPClient", "run(): Connecting...");
         //create a socket to make the connection with the server
         SocketAddress sockaddr = new InetSocketAddress(SERVERIP, SERVERPORT);
 
         socket = new Socket();
-        socket.connect(sockaddr,50000); //TODO: Change value
+        socket.connect(sockaddr,50000);
 
         //create output streamer
         out = new PrintWriter(new BufferedWriter(
@@ -143,7 +141,7 @@ class TCPClient implements Runnable {
         //receive the message which the server sends back
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         Log.d("TCPClient", "run(): in created");
-        TCPClient.connected = true;
+        connected = true;
 
 
     }
@@ -157,10 +155,10 @@ class TCPClient implements Runnable {
             if(out != null)out.close();
             connected = false;
             t.interrupt();
+            instance = null;
 
         } catch (IOException e) {
             e.printStackTrace();
-            //TODO: CENAS
         }
 
 
@@ -174,13 +172,13 @@ class TCPClient implements Runnable {
         mRun = true;
         int nullmessage = 0;
 
+        Log.e("TCPClient", "run(): Starting");
         try {
             try {
                 startSocket();
             } catch (SocketTimeoutException | SocketException e ) {
                 Log.e("TCPClient", "run(): SocketTimeoutException", e);
                 socketTimeout = true;
-
                 return;
             }
             Log.d("TCPClient", "run(): Started!");
@@ -217,15 +215,26 @@ class TCPClient implements Runnable {
             try {
                 stopClient();
                 socket.close();
+
             } catch (IOException e) {
-                //TODO
                 e.printStackTrace();
             }
             Log.e("TCPClient", "Finally: CLOSING");
 
+
         }
 
 
+    }
+
+    public void changeSocketTimout(int timeout)
+    {
+        if(socket.isConnected())
+            try {
+                socket.setSoTimeout(timeout);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
     }
 
 
