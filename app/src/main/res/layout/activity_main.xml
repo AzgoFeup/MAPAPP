@@ -35,17 +35,27 @@
 
     <Button
         android:layout_width="40dp"
-        android:layout_height="50dp"
-        app:background="@drawable/search"
-        android:layout_above="@+id/map"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="10dp"
+        android:layout_height="40dp"
         android:id="@+id/button"
-        android:src="@drawable/login_facebook"
         android:adjustViewBounds="true"
         android:cropToPadding="false"
         android:scaleType="fitXY"
         android:background="@drawable/search"
-        />
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/startActivityButton"
+        android:layout_marginEnd="10dp" />
+
+    <Button
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:id="@+id/startActivityButton"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:background="@drawable/navigate"
+        android:layout_alignBottom="@+id/button"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="11dp" />
+
 
 </RelativeLayout>
