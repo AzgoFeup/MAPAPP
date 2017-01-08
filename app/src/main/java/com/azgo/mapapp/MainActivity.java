@@ -3,7 +3,6 @@ package com.azgo.mapapp;
 import android.Manifest;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,15 +11,13 @@ import android.graphics.Color;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Address;
-import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -31,13 +28,11 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,45 +43,33 @@ import com.azgo.mapapp.fragments.HistoryActivity;
 import com.azgo.mapapp.fragments.MapActivity;
 import com.azgo.mapapp.fragments.SettingsActivity;
 import com.facebook.login.LoginManager;
-import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import android.hardware.SensorEventListener;
-import android.content.Context;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-
-import static android.R.id.toggle;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, SensorEventListener {
 
@@ -145,14 +128,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private Object lockmessa = new Object();
     private Object lockfriends = new Object();
-    private Object lockReception  = new Object();
+    private Object lockReception = new Object();
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
-
 
 
     @Override
@@ -172,7 +154,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         /*createBuilder();
         createLocationRequest();*/
         //mGoogleMap = null;
-
 
 
         setContentView(R.layout.main_activity);
@@ -239,13 +220,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
         //getnumbers
-        Cursor phones = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
+        Cursor phones = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
         String separator = "$";
-        while (phones.moveToNext())
-        {
+        while (phones.moveToNext()) {
             String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-            phoneNumber = phoneNumber.replaceAll("\\s+",""); //tirar espaços;
+            phoneNumber = phoneNumber.replaceAll("\\s+", ""); //tirar espaços;
             phoneNumber = phoneNumber.substring(phoneNumber.length() - 9); //buscar ultimos 9 numeros
             String oldfriends = friends + separator + phoneNumber;
             friends = oldfriends;
@@ -368,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (mCurrentLocation != null) {
             mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(mCurrentLocation.getLatitude(),
-                            mCurrentLocation.getLongitude()), (float)19.08));
+                            mCurrentLocation.getLongitude()), (float) 19.08));
         } else {
 
         }
@@ -416,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
         createLocationRequest();
-
 
 
     }
@@ -695,14 +674,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 */
     @Override
-    public boolean onCreateOptionsMenu (Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected (MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item) {
 
         if (toggle.onOptionsItemSelected(item)) {
             return true;
@@ -749,6 +728,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
     }
+
     private void handleNewLocation(Location location) {
         Log.d("localização", location.toString());
         double currentLatitude = location.getLatitude();
@@ -803,16 +783,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mCurrentLocation = location;
         updateMarkers();
         GeomagneticField field = new GeomagneticField(
-                (float)mCurrentLocation.getLatitude(),
-                (float)mCurrentLocation.getLongitude(),
-                (float)mCurrentLocation.getAltitude(),
+                (float) mCurrentLocation.getLatitude(),
+                (float) mCurrentLocation.getLongitude(),
+                (float) mCurrentLocation.getAltitude(),
                 System.currentTimeMillis()
         );
         //getDeclination returns degrees
         mDeclination = field.getDeclination();
 
         LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-        if(navigation_on == 1){
+        if (navigation_on == 1) {
             marker.remove();
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)
@@ -887,6 +867,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         updateLocationUI();
     }
+
     private void updateMarkers() {
         if (mGoogleMap == null) {
             return;
@@ -939,16 +920,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
     public void signOut() {
 
         logoutPressed = true;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            Log.e("SignOut", "Logout - if" );
+            Log.e("SignOut", "Logout - if");
             logAsync = new logout().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         } else {
-            Log.e("SignOut", "Logout - if" );
+            Log.e("SignOut", "Logout - if");
             logAsync = new logout().execute();
         }
     }
@@ -968,12 +948,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if(event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR){
+        if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
             SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values);
             float[] orientation = new float[3];
             SensorManager.getOrientation(mRotationMatrix, orientation);
-            if(Math.abs(Math.toDegrees(orientation[0] - angle))>0.8){
-                float bearing = (float)Math.toDegrees(orientation[0]) + mDeclination;
+            if (Math.abs(Math.toDegrees(orientation[0] - angle)) > 0.8) {
+                float bearing = (float) Math.toDegrees(orientation[0]) + mDeclination;
                 updateCamera(bearing);
             }
             angle = Math.toDegrees(orientation[0]);
@@ -985,14 +965,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    private void updateCamera(float bearing){
+    private void updateCamera(float bearing) {
         CameraPosition oldPos = mGoogleMap.getCameraPosition();
         CameraPosition pos = CameraPosition.builder(oldPos).bearing(bearing).build();
         mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos));
     }
 
     @Override
-    public void onBackPressed () {
+    public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (drawer.isDrawerOpen(GravityCompat.END)) {  /*Closes the Appropriate Drawer*/
@@ -1004,10 +984,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected (MenuItem item){
+    public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -1080,7 +1059,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             //we create a TCPClient object and
             mTcpClient = TCPClient.getInstance();
 
-            while(mTcpClient != null) {
+            while (mTcpClient != null) {
 
                 while (!mTcpClient.comunicationReceived) ;
 
@@ -1116,16 +1095,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public class backgroundSending extends AsyncTask<String, String, String> {
 
         private boolean connection = false;
+
         @Override
         protected String doInBackground(String... message) {
             String coordenadas = "";
-            while(mTcpClient == null);
+            while (mTcpClient == null) ;
             connection = true;
 
-            while(!logoutPressed) {
+            while (!logoutPressed) {
 
                 try {
-                    Log.e("ASYNC", "Sending Coordinates$: " +mCurrentLocation);
+                    Log.e("ASYNC", "Sending Coordinates$: " + mCurrentLocation);
                     if (mCurrentLocation != null) {
                         Double latitude_enviar = mCurrentLocation.getLatitude();
 
@@ -1134,30 +1114,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
 
                     if (coordenadas != "$" && !coordenadas.equals("")) {
-                        if(!TCPClient.connected && connection) {
+                        if (!TCPClient.connected && connection) {
                             publishProgress("");
                             connection = false;
-                        }
-                        else if (TCPClient.connected){
+                        } else if (TCPClient.connected) {
                             connection = true;
-                            mTcpClient.sendMessage("Coordinates$" + mAuth.getCurrentUser().getEmail() + "$"  + coordenadas);
+                            mTcpClient.sendMessage("Coordinates$" + mAuth.getCurrentUser().getEmail() + "$" + coordenadas);
                             Log.e("ASYNC", "Sending Coordinates$: " + coordenadas);
-                        }
-                        else
-                        {
-                            Log.e("ASYNC", "Waiting for connection " );
+                        } else {
+                            Log.e("ASYNC", "Waiting for connection ");
                         }
 
-                    }
-                    else {
+                    } else {
                         Log.e("MainActivity", "AsyncTask Sending: Wrong Coordinates");
                     }
                     Thread.sleep(2000);
 
-                    if(logoutPressed) cancel(true);
+                    if (logoutPressed) cancel(true);
 
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -1170,10 +1145,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onProgressUpdate(values);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                Log.e("backgroundSending", "waitConnection - if" );
+                Log.e("backgroundSending", "waitConnection - if");
                 waitConnection = new waitConnection().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             } else {
-                Log.e("backgroundSending", "waitConnection - if" );
+                Log.e("backgroundSending", "waitConnection - if");
                 waitConnection = new waitConnection().execute();
             }
 
@@ -1184,14 +1159,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onCancelled() {
             super.onCancelled();
             connection = false;
-            if( mTcpClient != null) mTcpClient.stopClient();
+            if (mTcpClient != null) mTcpClient.stopClient();
 
-            Log.e("ASYNC", "CANCELED: " );
-            return ;
+            Log.e("ASYNC", "CANCELED: ");
+            return;
         }
     }
 
-    public class logout extends AsyncTask<String,String,String> {
+    public class logout extends AsyncTask<String, String, String> {
 
         private final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
 
@@ -1202,7 +1177,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             FirebaseAuth.getInstance().signOut(); //for gmail
             LoginManager.getInstance().logOut(); //for facebook
 
-            Log.e("SignOut", "Firebase" );
+            Log.e("SignOut", "Firebase");
 
             recAsync.cancel(true);
             senAsync.cancel(true);
@@ -1210,13 +1185,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             Log.e("SignOut", "Async Cancel " + logoutPressed);
 
-            if( mTcpClient != null){
+            if (mTcpClient != null) {
                 mTcpClient.stopClient();
                 mTcpClient = null;
             }
 
             //while(mTcpClient != null)
-
 
 
             Log.e("SignOut", "GoingTo login" + logoutPressed);
@@ -1246,7 +1220,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public class waitConnection extends AsyncTask<String,String,String> {
+    public class waitConnection extends AsyncTask<String, String, String> {
 
         private final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
 
@@ -1255,8 +1229,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             while (!TCPClient.connected) {
                 try {
-                    Thread.currentThread().sleep(1000);
-                    mTcpClient.sendMessage("Login$"+mAuth.getCurrentUser().getDisplayName()+"$"+mAuth.getCurrentUser().getEmail());
+                    Log.e("AsyncTask", "Sending Login");
+                    Thread.sleep(1000);
+                    mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName() + "$" + mAuth.getCurrentUser().getEmail());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -1288,18 +1263,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public class backgroundSendFriends extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... message) {
-            while(mTcpClient == null);
-            while(friends == "Friends");
+            while (mTcpClient == null) ;
+            while (friends == "Friends") ;
 
             if (friends != "Friends") {
                 mTcpClient.sendMessage(friends);
-                Log.e("AsyncFriends", "Sending Friends: " +friends);
-            }
-            else {
+                Log.e("AsyncFriends", "Sending Friends: " + friends);
+            } else {
                 Log.e("AsyncFriends", "Error sending Friends");
             }
 
-            while (!mTcpClient.friendsReceived);
+            while (!mTcpClient.friendsReceived) ;
 
             if (!TCPClient.friendsArray.isEmpty()) {
 
@@ -1312,6 +1286,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             return null;
         }
+
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
@@ -1319,16 +1294,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 String[] items = values[0].split("\\$");
                 int tam = items.length;
-                String[][] contacts = new String[tam-1][3];
+                String[][] contacts = new String[tam - 1][3];
 
-                for (String item : items)
-                {
-                    int i=0;
-                    if (i!=0) {
+                for (String item : items) {
+                    int i = 0;
+                    if (i != 0) {
                         String[] data = item.split("\\#");
-                        contacts[i-1][0] = data[0];
-                        contacts[i-1][1] = data[1];
-                        contacts[i-1][2] = data[2];
+                        contacts[i - 1][0] = data[0];
+                        contacts[i - 1][1] = data[1];
+                        contacts[i - 1][2] = data[2];
                     }
                     i++;
                 }
