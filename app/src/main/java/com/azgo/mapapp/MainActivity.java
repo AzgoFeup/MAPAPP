@@ -158,7 +158,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //mGoogleMap = null;
 
 
-        setContentView(R.layout.main_activity);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -167,20 +166,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.drawer_open, R.string.drawer_close);
+        toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.drawer_open, R.string.drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        MapActivity MapActivityFragment = new MapActivity();
-        FragmentManager manager = getSupportFragmentManager();
-        manager.beginTransaction().replace(R.id.content_frame,
-                MapActivityFragment,
-                MapActivityFragment.getTag()).commit();
-
 
         navigationView = (NavigationView) findViewById(R.id.nvView);
-
         navigationView.setNavigationItemSelectedListener(this);
 
 
@@ -1032,11 +1023,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.map) {
             final TextView textViewToChange = (TextView) findViewById(R.id.toolbar_title);
             textViewToChange.setText("MapApp");
-            MapActivity MapActivityFragment = new MapActivity();
             FragmentManager manager = getSupportFragmentManager();
+            MapActivity MapActivityFragment = new MapActivity();
             manager.beginTransaction().replace(R.id.content_frame,
                     MapActivityFragment,
                     MapActivityFragment.getTag()).commit();
+
+
         } else if (id == R.id.logout) {
             signOut();
             Intent intent = new Intent(this, mainLogin.class);

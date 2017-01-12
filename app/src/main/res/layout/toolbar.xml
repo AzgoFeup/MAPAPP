@@ -48,11 +48,10 @@
                 android:layout_width="28dp"
                 android:layout_height="35dp"
                 android:layout_gravity="right"
-                android:layout_marginLeft="100dp"
+                android:layout_marginLeft="120dp"
                 android:id="@+id/friends_icon"
                 android:src="@drawable/mainpage_iconfriends"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"/>
+                android:layout_alignParentEnd="true" />
 
         </LinearLayout>
 

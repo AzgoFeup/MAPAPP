@@ -9,22 +9,28 @@
     android:orientation="vertical"
     android:gravity="bottom">
 
+
     <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="16dp"
-        app:srcCompat="@android:drawable/sym_def_app_icon"/>
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:paddingBottom="3dp"
+        app:srcCompat="@drawable/user"
+        android:id="@+id/imageView7" />
+
     <TextView
         android:id="@+id/textView"
-        android:text="Jorge Mendes"
+        android:text="JORGE MENDES"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Status"
         android:textColor="@android:color/white"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+        />
+
+    <TextView
+    android:textSize="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="STATUS"
+    android:textColor="@android:color/white"
+    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
 
 </LinearLayout>
