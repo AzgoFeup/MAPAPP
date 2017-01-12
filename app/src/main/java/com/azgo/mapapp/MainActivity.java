@@ -1400,10 +1400,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onProgressUpdate(values);
 
             synchronized (lockfriends) {
-
-
                 String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
-
                 for (String item : items) {
                     int i = 0;
                     if (i != 0) {
@@ -1413,19 +1410,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                     i++;
                 }
-
-
                 //Message = FriendsDataList; //required: java.lang.string <-> found: java.util.list
-
                 messageReceived = true;
-
             }
 
 
             for (FriendsData friendsdata : FriendsDataList) {
-
                 Log.e("AsyncFriends", "onProgressUpdate: " + friendsdata.getName() + friendsdata.getEmail() + friendsdata.getNumber());
-
             }
 
         }
