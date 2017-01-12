@@ -69,6 +69,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -128,6 +129,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //static Queue<String> numbersArray = new LinkedList<>();
     static String friends = "Friends";
 
+    static List<FriendsData<String, String, String>> FriendsDataList = new ArrayList<>();
+
+
     private Object lockmessa = new Object();
     private Object lockfriends = new Object();
     private Object lockReception = new Object();
@@ -156,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         /*createBuilder();
         createLocationRequest();*/
         //mGoogleMap = null;
-
 
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -1046,32 +1049,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /*
      * Get the number from the contacts list
      */
-    public void meetSend(){
+    public void meetSend() {
 
         String num = "123456789";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            Log.e("meetSend", "Meet - if" );
+            Log.e("meetSend", "Meet - if");
             meetTask = new sendMeetRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, num);
         } else {
-            Log.e("meetSend", "Meet - else" );
+            Log.e("meetSend", "Meet - else");
             meetTask = new sendMeetRequest().execute(num);
         }
 
         meetReply();  //to be removed
     }
 
-    public void meetReply(){
+    public void meetReply() {
         String[] items = mTcpClient.meetRArray.peek().split("\\$");
         items[1] = "email_1@fe.up.pt"; //to be removed
 
         String replyStatus = "OK"; // TODO: Take the reply from the user (OK/FAIL)
-        String reply = items[1]+ "$" + replyStatus;
+        String reply = items[1] + "$" + replyStatus;
         mTcpClient.meetRArray.remove();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            Log.e("meetReply", "Meet - if" );
+            Log.e("meetReply", "Meet - if");
             meetTask = new sendMeetReply().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, reply);
         } else {
-            Log.e("meetReply", "Meet - else" );
+            Log.e("meetReply", "Meet - else");
             meetTask = new sendMeetReply().execute(reply);
         }
     }
@@ -1090,7 +1093,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             while (mTcpClient != null) {
 
                 // Loop while doesn't receive
-                while ( (!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)) ;
+                while ((!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)) ;
 
                 synchronized (lockReception) {
                     if (!TCPClient.comunicationArray.isEmpty()) {
@@ -1099,14 +1102,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         publishProgress(TCPClient.comunicationArray.peek());
                         TCPClient.comunicationArray.remove();
                         mTcpClient.comunicationReceived = false;
-                    }
-                    else if (!TCPClient.meetRArray.isEmpty()){
+                    } else if (!TCPClient.meetRArray.isEmpty()) {
                         Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.meetRArray.peek());
                         publishProgress(TCPClient.meetRArray.peek());
                         //TCPClient.meetRArray.remove();  //will be needed to the reply
                         mTcpClient.meetRStatus = false;
-                    }
-                    else {
+                    } else {
                         Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
                     }
                 }
@@ -1310,12 +1311,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected String doInBackground(String... num) {
             while (mTcpClient == null) ;
 
-            Log.e("ASYNC", "Sending MeetRequest to: "+ num[0]);
+            Log.e("ASYNC", "Sending MeetRequest to: " + num[0]);
             mTcpClient.meetStatus = true;
             mTcpClient.sendMessage("Meet$" + num[0]);
 
             //TODO: waiting message for the user (onProgressUpdate)
-            while(mTcpClient.meetStatus) publishProgress("Waiting");
+            while (mTcpClient.meetStatus) publishProgress("Waiting");
             return null;
         }
 
@@ -1330,8 +1331,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onCancelled() {
             super.onCancelled();
 
-            Log.e("ASYNC", "CANCELED: " );
-            return ;
+            Log.e("ASYNC", "CANCELED: ");
+            return;
         }
     }
 
@@ -1341,12 +1342,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected String doInBackground(String... reply) {
             while (mTcpClient == null) ;
 
-            Log.e("ASYNC", "Sending MeetReply to: "+ reply[0]);
+            Log.e("ASYNC", "Sending MeetReply to: " + reply[0]);
             mTcpClient.meetStatus = true;
             mTcpClient.sendMessage("MeetRequest$" + reply[0]);
 
             //TODO: waiting message for the user (onProgressUpdate)
-            while(mTcpClient.meetStatus) publishProgress("Waiting");
+            while (mTcpClient.meetStatus) publishProgress("Waiting");
             return null;
         }
 
@@ -1361,8 +1362,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onCancelled() {
             super.onCancelled();
 
-            Log.e("ASYNC", "CANCELED: " );
-            return ;
+            Log.e("ASYNC", "CANCELED: ");
+            return;
         }
     }
 
@@ -1397,29 +1398,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
+
             synchronized (lockfriends) {
 
-                String[] items = values[0].split("\\$");
-                int tam = items.length;
-                String[][] contacts = new String[tam - 1][3];
+
+                String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
 
                 for (String item : items) {
                     int i = 0;
                     if (i != 0) {
                         String[] data = item.split("\\#");
-                        contacts[i - 1][0] = data[0];
-                        contacts[i - 1][1] = data[1];
-                        contacts[i - 1][2] = data[2];
+                        FriendsData<String, String, String> trio = new FriendsData<>(data[0], data[1], data[2]);
+                        FriendsDataList.add(trio);
                     }
                     i++;
                 }
 
-                FriendsMessage = contacts;
+
+                //Message = FriendsDataList; //required: java.lang.string <-> found: java.util.list
+
                 messageReceived = true;
+
             }
-            Log.e("AsyncFriends", "onProgressUpdate: " + FriendsMessage);
+
+
+            for (FriendsData friendsdata : FriendsDataList) {
+
+                Log.e("AsyncFriends", "onProgressUpdate: " + friendsdata.getName() + friendsdata.getEmail() + friendsdata.getNumber());
+
+            }
+
         }
     }
-
 
 }
