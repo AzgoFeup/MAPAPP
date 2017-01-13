@@ -278,7 +278,7 @@ class TCPClient implements Runnable {
         else if(items[0].equals("MeetRequest")){
             synchronized (lockArray5){
                 meetRArray.add(message);
-                meetRStatus = false;   //true while wait for response
+                meetRStatus = true;
 
             }
         }
