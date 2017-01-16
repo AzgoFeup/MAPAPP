@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AsyncTask meetTask;
     //static Queue<String> numbersArray = new LinkedList<>();
     static String friends = "Friends";
+    public static String sessionID ;
 
     static List<FriendsData<String, String, String>> FriendsDataList = new ArrayList<>();
 
@@ -184,6 +185,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mAuth = FirebaseAuth.getInstance();
 
+        sessionID = getIntent().getStringExtra("sessionId");
+
+        Log.e("onCreate: ", "SeccionID is:" + sessionID);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             recAsync = new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
@@ -1096,9 +1100,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             while (mTcpClient != null) {
 
+
+
+
                 // Loop while doesn't receive
                 while ((!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)
-                        && (!mTcpClient.meetStatus)) ;
+                        && (!mTcpClient.meetStatus) && !TCPClient.killme) ;
+
+                //if killme received
+                if(TCPClient.killme) {
+                    Log.e("backgroundReception", "LoginOut");
+                    signOut();
+                    recAsync.cancel(true);
+                }
+
 
                 synchronized (lockReception) {
                     if (!TCPClient.comunicationArray.isEmpty()) {
@@ -1118,7 +1133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         //TCPClient.meetRArray.remove();  //will be needed to the reply
                         mTcpClient.meetStatus = false;
                     } else {
-                        Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
+                        Log.e("backgroundReception", "Mensagem recebida não chegou aqui");
                     }
                 }
             }

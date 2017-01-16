@@ -1,28 +1,24 @@
 package com.azgo.mapapp;
 
-import android.content.DialogInterface;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
-/**
- * Created by Jose Valverde on 17/11/2016.
- */
-
-import android.util.Log;
-import java.io.*;
-import java.net.InetAddress;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Objects;
 import java.util.Queue;
+
+/**
+ * Created by Jose Valverde on 17/11/2016.
+ */
 
 class TCPClient implements Runnable {
 
@@ -53,10 +49,11 @@ class TCPClient implements Runnable {
     public static Object lockArray4 = new Object();
     public static Object lockArray5 = new Object();
 
-    private static TCPClient instance= null;
+    private static TCPClient instance = null;
+    public static boolean killme = false;
 
     /**
-     *  Constructor of the class.
+     * Constructor of the class.
      */
     private TCPClient() {
     }
@@ -64,6 +61,7 @@ class TCPClient implements Runnable {
 
     /**
      * Creates a new instance of this class.
+     *
      * @return The new instance.
      */
     static synchronized TCPClient getInstance() {
@@ -88,25 +86,24 @@ class TCPClient implements Runnable {
 
     /**
      * Sends the message entered by client to the server
+     *
      * @param message text entered by client
      */
-    public void sendMessage(final String message){
-        if (out == null || !connected)
-        { //with errrors start again
-            Log.d("TCP Client", "Reconnecting" );
+    public void sendMessage(final String message) {
+        if (out == null || !connected) { //with errrors start again
+            Log.d("TCP Client", "Reconnecting");
             getInstance();
         }
         if (out != null && !out.checkError()) {
-            if(!connected)
-            {
+            if (!connected) {
                 //with errrors start again
                 Log.d("TCP Client", "S: Waiting for connection");
                 getInstance();
-                while (!connected);
+                while (!connected) ;
             }
             Log.d("TCP Client", "S: Sending" + message);
 
-            new Thread(){
+            new Thread() {
                 @Override
                 public void run() {
                     super.run();
@@ -120,18 +117,17 @@ class TCPClient implements Runnable {
     }
 
     /**
-     *
      * @throws Exception
      */
     public synchronized void startSocket() throws Exception {
-        Log.d("TCPClient", "run(): Connecting to "+ SERVERIP);
+        Log.d("TCPClient", "run(): Connecting to " + SERVERIP);
         //InetAddress serverAddr = InetAddress.getByName(SERVERIP);
 
         //create a socket to make the connection with the server
         SocketAddress sockaddr = new InetSocketAddress(SERVERIP, SERVERPORT);
 
         socket = new Socket();
-        socket.connect(sockaddr,50000);
+        socket.connect(sockaddr, 50000);
 
         //create output streamer
         out = new PrintWriter(new BufferedWriter(
@@ -147,12 +143,12 @@ class TCPClient implements Runnable {
     }
 
 
-    public synchronized void stopClient(){
+    public synchronized void stopClient() {
         try {
             Log.e("TCPClient", "CLOSING");
-            if(socket != null)socket.close();
-            if(in != null) in.close();
-            if(out != null)out.close();
+            if (socket != null) socket.close();
+            if (in != null) in.close();
+            if (out != null) out.close();
             connected = false;
             t.interrupt();
             instance = null;
@@ -176,7 +172,7 @@ class TCPClient implements Runnable {
         try {
             try {
                 startSocket();
-            } catch (SocketTimeoutException | SocketException e ) {
+            } catch (SocketTimeoutException | SocketException e) {
                 Log.e("TCPClient", "run(): SocketTimeoutException", e);
                 socketTimeout = true;
                 return;
@@ -194,22 +190,19 @@ class TCPClient implements Runnable {
                     //call the method messageReceived from MyActivity class
                     messageReceived(serverMessage);
                     //messageAdded = true;
-                }
-                else if(nullmessage == 1000) { //Great number???
+                } else if (nullmessage == 1000) { //Great number???
                     throw new Exception("No Connection");
-                }
-                else {
+                } else {
                     nullmessage++;
                 }
                 serverMessage = null;
             }
 
-        }  catch (Exception e) {
+        } catch (Exception e) {
 
             stopClient();
             Log.e("TCPClient", "run(): Generic Error", e);
-        }
-        finally {
+        } finally {
             //the socket must be closed. It is not possible to reconnect to this socket
             // after it is closed, which means a new socket instance has to be created.
             try {
@@ -227,9 +220,8 @@ class TCPClient implements Runnable {
 
     }
 
-    public void changeSocketTimout(int timeout)
-    {
-        if(socket.isConnected())
+    public void changeSocketTimout(int timeout) {
+        if (socket.isConnected())
             try {
                 socket.setSoTimeout(timeout);
             } catch (SocketException e) {
@@ -239,51 +231,54 @@ class TCPClient implements Runnable {
 
 
     private void messageReceived(String message) {
-        Log.e("TCPClient", "messageReceived(): "+ message);
+        Log.e("TCPClient", "messageReceived(): " + message);
 
         String[] items = message.split("\\$");
-        for (String item : items)
-        {
+        for (String item : items) {
             System.out.println("item = " + item);
         }
 
-        Log.e("MENSAGEM" , items[0]);
-        if(items[0].equals("Login")) {
+        Log.e("MENSAGEM", items[0]);
+        if (items[0].equals("Login")) {
             Log.e("TCPClient", "messageReceived: is login");
-            synchronized (lockArray1){
+            synchronized (lockArray1) {
                 loginArray.add(message);
                 loginReceived = true;
             }
-        }
-        else if(items[0].equals("Coordinates")) {
+        } else if (items[0].equals("Coordinates")) {
             Log.e("TCPClient", "messageReceived: is coordinates");
             synchronized (lockArray2) {
                 comunicationArray.add(message);
                 comunicationReceived = true;
             }
-        }
-        else if(items[0].equals("Friends")) {
+        } else if (items[0].equals("Friends")) {
             Log.e("TCPClient", "messageReceived is friends");
-            synchronized (lockArray3){
+            synchronized (lockArray3) {
                 friendsArray.add(message);
                 friendsReceived = true;
             }
-        }
-        else if(items[0].equals("Meet")){
-            synchronized (lockArray4){
+        } else if (items[0].equals("Meet")) {
+            synchronized (lockArray4) {
                 meetArray.add(message);
                 meetStatus=true;   //false while wait for response
             }
-        }
-        else if(items[0].equals("MeetRequest")){
-            synchronized (lockArray5){
+        } else if (items[0].equals("MeetRequest")) {
+            synchronized (lockArray5) {
                 meetRArray.add(message);
                 meetRStatus = true;
 
             }
+        } else if (items[0].equals("MeetRequest")) {
+            synchronized (lockArray5) {
+                meetRArray.add(message);
+                meetRStatus = true;
+
+            }
+        } else if (items[0].equals("KILLME")) {
+            sendMessage("LOGOUT$" + MainActivity.sessionID);
+            stopClient();
+            killme = true;
         }
+
     }
-
-
-
 }
