@@ -1097,13 +1097,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             while (mTcpClient != null) {
 
                 // Loop while doesn't receive
-                while ((!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)) ;
+                while ((!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)
+                        && (!mTcpClient.meetStatus)) ;
 
                 synchronized (lockReception) {
                     if (!TCPClient.comunicationArray.isEmpty()) {
-                        Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.comunicationArray.peek());
+                        //Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.comunicationArray.peek());
 
-                        publishProgress(TCPClient.comunicationArray.peek());
+                        //publishProgress(TCPClient.comunicationArray.peek());
                         TCPClient.comunicationArray.remove();
                         mTcpClient.comunicationReceived = false;
                     } else if (!TCPClient.meetRArray.isEmpty()) {
@@ -1111,6 +1112,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         publishProgress(TCPClient.meetRArray.peek());
                         //TCPClient.meetRArray.remove();  //will be needed to the reply
                         mTcpClient.meetRStatus = false;
+                    }  else if (!TCPClient.meetArray.isEmpty()) {
+                        Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.meetArray.peek());
+                        publishProgress(TCPClient.meetArray.peek());
+                        //TCPClient.meetRArray.remove();  //will be needed to the reply
+                        mTcpClient.meetStatus = false;
                     } else {
                         Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
                     }
@@ -1146,14 +1152,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 };
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(getParent());
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setMessage("Meet with "+message[1]+ "?").setPositiveButton("Yes", dialogClickListener)
                         .setNegativeButton("No", dialogClickListener).show();
 
+            } else if(message[0].equals("Meet")){       // Meet$email2$OK/FAIL$LAT$LON
+                if(message[2].equals("FAIL")){
+                    Toast.makeText(MainActivity.this, "Meet Rejected", Toast.LENGTH_LONG).show();
+                } else if(message[2].equals("OK")){
+                    Log.e("MainActivity", "Start Meet: "+message[3]+";"+message[4]);
+                    //TODO: start navigation for that coordinates
+                }
+
+
             }
-            //TODO: check message type and handle it
-            // MeetRequest$num -> Present the request PopUp
-            // Coordinates$OK -> What should we do here??
 
             //Log.e("MainActivity", "onProgressUpdate: " + Message);
             // notify the adapter that the data set has changed. This means that new message received
@@ -1340,11 +1352,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             while (mTcpClient == null) ;
 
             Log.e("ASYNC", "Sending MeetRequest to: " + email[0]);
-            mTcpClient.meetStatus = true;
+            mTcpClient.meetStatus = false;
             mTcpClient.sendMessage("Meet$" + email[0]);
 
             //TODO: waiting message for the user (onProgressUpdate)
-            while (mTcpClient.meetStatus) publishProgress("Waiting");
+            //while (!mTcpClient.meetStatus) publishProgress("Waiting");
             return null;
         }
 
