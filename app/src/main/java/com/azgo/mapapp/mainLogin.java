@@ -81,9 +81,9 @@ public class mainLogin extends AppCompatActivity implements
     private static String Message;
     private static boolean messageReceived;
     private static boolean errorLogin = false;
+    private static String  sessionID;
 
     //telefone
-
     String mPhoneNumber;
 
     //Async Task
@@ -593,7 +593,13 @@ public class mainLogin extends AppCompatActivity implements
                 //Login Done?
                 //TODO: Change this Server side ready
                 String[] items = Message.split("\\$");
-                if (items[0].equals("Login")) break;
+                if (items[0].equals("Login")) {
+                    //TODO: WAIT FOR SERVER TO DO STUFF
+                    //sessionID = "1234";
+                    sessionID = items[1];
+                    break;
+                }
+
                 //There is no else
             }
 
@@ -620,6 +626,7 @@ public class mainLogin extends AppCompatActivity implements
                 reception.cancel(true);
                 Log.e("AsyncTask", "onPostExecute");
                 Intent intent = new Intent(mainLogin.this, MainActivity.class);
+                intent.putExtra("sessionId", sessionID);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
                         | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);

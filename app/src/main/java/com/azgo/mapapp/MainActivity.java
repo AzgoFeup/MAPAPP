@@ -2,8 +2,10 @@ package com.azgo.mapapp;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -116,8 +118,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
-    private static boolean messageReceived;
-    private static String Message;
+    //private static boolean messageReceived;
+    //private static String Message;
     private static String[][] FriendsMessage;
     boolean logoutPressed = false;
     private AsyncTask senAsync;
@@ -128,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AsyncTask meetTask;
     //static Queue<String> numbersArray = new LinkedList<>();
     static String friends = "Friends";
+    public static String sessionID ;
 
     static List<FriendsData<String, String, String>> FriendsDataList = new ArrayList<>();
 
@@ -182,6 +185,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mAuth = FirebaseAuth.getInstance();
 
+        sessionID = getIntent().getStringExtra("sessionId");
+
+        Log.e("onCreate: ", "SeccionID is:" + sessionID);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             recAsync = new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
@@ -1049,25 +1055,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /*
      * Get the number from the contacts list
      */
-    public void meetSend() {
+    public void meetSend(View view) {
 
-        String num = "123456789";
+        String email = "azgosetec@gmail.com";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             Log.e("meetSend", "Meet - if");
-            meetTask = new sendMeetRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, num);
+            meetTask = new sendMeetRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, email);
         } else {
             Log.e("meetSend", "Meet - else");
-            meetTask = new sendMeetRequest().execute(num);
+            meetTask = new sendMeetRequest().execute(email);
         }
-
-        meetReply();  //to be removed
     }
 
-    public void meetReply() {
+    /*
+     * replyStatus should be OK or FAIL
+     */
+    public void meetReply(String replyStatus) {
         String[] items = mTcpClient.meetRArray.peek().split("\\$");
-        items[1] = "email_1@fe.up.pt"; //to be removed
+        //items[1] = "huguetascp10@gmail.com"; //to be removed
 
-        String replyStatus = "OK"; // TODO: Take the reply from the user (OK/FAIL)
+        //String replyStatus = "OK"; // TODO: Take the reply from the user (OK/FAIL)
         String reply = items[1] + "$" + replyStatus;
         mTcpClient.meetRArray.remove();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -1078,6 +1085,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             meetTask = new sendMeetReply().execute(reply);
         }
     }
+
 
 
 ///COMUNICAÇÃO
@@ -1092,14 +1100,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             while (mTcpClient != null) {
 
+
+
+
                 // Loop while doesn't receive
-                while ((!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)) ;
+                while ((!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)
+                        && (!mTcpClient.meetStatus) && !TCPClient.killme) ;
+
+                //if killme received
+                if(TCPClient.killme) {
+                    Log.e("backgroundReception", "LoginOut");
+                    signOut();
+                    recAsync.cancel(true);
+                }
+
 
                 synchronized (lockReception) {
                     if (!TCPClient.comunicationArray.isEmpty()) {
-                        Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.comunicationArray.peek());
+                        //Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.comunicationArray.peek());
 
-                        publishProgress(TCPClient.comunicationArray.peek());
+                        //publishProgress(TCPClient.comunicationArray.peek());
                         TCPClient.comunicationArray.remove();
                         mTcpClient.comunicationReceived = false;
                     } else if (!TCPClient.meetRArray.isEmpty()) {
@@ -1107,8 +1127,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         publishProgress(TCPClient.meetRArray.peek());
                         //TCPClient.meetRArray.remove();  //will be needed to the reply
                         mTcpClient.meetRStatus = false;
+                    }  else if (!TCPClient.meetArray.isEmpty()) {
+                        Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.meetArray.peek());
+                        publishProgress(TCPClient.meetArray.peek());
+                        //TCPClient.meetRArray.remove();  //will be needed to the reply
+                        mTcpClient.meetStatus = false;
                     } else {
-                        Log.e("MainActivity", "AsyncTask Reception: Mensagem recebida não chegou aqui");
+                        Log.e("backgroundReception", "Mensagem recebida não chegou aqui");
                     }
                 }
             }
@@ -1119,15 +1144,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             //in the arrayList we add the messaged received from server
-            synchronized (lockmessa) {
+            /*synchronized (lockmessa) {
                 Message = values[0];
                 messageReceived = true;
-            }
-            //TODO: check message type and handle it
-            // MeetRequest$num -> Present the request PopUp
-            // Coordinates$OK -> What should we do here??
+            }*/
+            String[] message = values[0].split("\\$");
+            if(message[0].equals("MeetRequest")){
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case DialogInterface.BUTTON_POSITIVE:
+                                //Yes button clicked
+                                meetReply("OK");
+                                break;
 
-            Log.e("MainActivity", "onProgressUpdate: " + Message);
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                //No button clicked
+                                meetReply("FAIL");
+                                break;
+                        }
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("Meet with "+message[1]+ "?").setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show();
+
+            } else if(message[0].equals("Meet")){       // Meet$email2$OK/FAIL$LAT$LON
+                if(message[2].equals("FAIL")){
+                    Toast.makeText(MainActivity.this, "Meet Rejected", Toast.LENGTH_LONG).show();
+                } else if(message[2].equals("OK")){
+                    Log.e("MainActivity", "Start Meet: "+message[3]+";"+message[4]);
+                    //TODO: start navigation for that coordinates
+                }
+
+
+            }
+
+            //Log.e("MainActivity", "onProgressUpdate: " + Message);
             // notify the adapter that the data set has changed. This means that new message received
             // from server was added to the list
         }
@@ -1308,15 +1363,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public class sendMeetRequest extends AsyncTask<String, String, String> {
 
         @Override
-        protected String doInBackground(String... num) {
+        protected String doInBackground(String... email) {
             while (mTcpClient == null) ;
 
-            Log.e("ASYNC", "Sending MeetRequest to: " + num[0]);
-            mTcpClient.meetStatus = true;
-            mTcpClient.sendMessage("Meet$" + num[0]);
+            Log.e("ASYNC", "Sending MeetRequest to: " + email[0]);
+            mTcpClient.meetStatus = false;
+            mTcpClient.sendMessage("Meet$" + email[0]);
 
             //TODO: waiting message for the user (onProgressUpdate)
-            while (mTcpClient.meetStatus) publishProgress("Waiting");
+            //while (!mTcpClient.meetStatus) publishProgress("Waiting");
             return null;
         }
 
@@ -1343,11 +1398,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             while (mTcpClient == null) ;
 
             Log.e("ASYNC", "Sending MeetReply to: " + reply[0]);
-            mTcpClient.meetStatus = true;
+            //mTcpClient.meetStatus = true;
             mTcpClient.sendMessage("MeetRequest$" + reply[0]);
 
-            //TODO: waiting message for the user (onProgressUpdate)
-            while (mTcpClient.meetStatus) publishProgress("Waiting");
             return null;
         }
 
@@ -1400,7 +1453,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onProgressUpdate(values);
 
             synchronized (lockfriends) {
+
+
                 String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
+
                 for (String item : items) {
                     int i = 0;
                     if (i != 0) {
@@ -1410,13 +1466,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                     i++;
                 }
+
+
                 //Message = FriendsDataList; //required: java.lang.string <-> found: java.util.list
-                messageReceived = true;
+
+                //messageReceived = true;
+
             }
 
 
             for (FriendsData friendsdata : FriendsDataList) {
+
                 Log.e("AsyncFriends", "onProgressUpdate: " + friendsdata.getName() + friendsdata.getEmail() + friendsdata.getNumber());
+
             }
 
         }
