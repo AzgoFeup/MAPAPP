@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //design
     NavigationView navigationView = null;
     NavigationView navigationViewRight = null;
-    final Menu menu = navigationViewRight.getMenu();
+    Menu menu = null;
     Toolbar toolbar = null;
     DrawerLayout drawer = null;
     ActionBarDrawerToggle toggle = null;
@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         navigationViewRight = (NavigationView) findViewById(R.id.nvView_right);
-
+        menu = navigationViewRight.getMenu();
 
 
         //Communication Stuff
