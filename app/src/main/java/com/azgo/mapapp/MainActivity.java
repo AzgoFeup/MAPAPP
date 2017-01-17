@@ -1062,15 +1062,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /*
      * Get the number from the contacts list
      */
-    public void meetSend(View view) {
+    public void meetSend(View view, String mail, String room) {
 
-        String email = "azgosetec@gmail.com";
+        //String mail;
+        //String room;
+        //mail = "azgosetec@gmail.com";
+        //room = "b001";
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             Log.e("meetSend", "Meet - if");
-            meetTask = new sendMeetRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, email);
+            meetTask = new sendMeetRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mail, room);
         } else {
             Log.e("meetSend", "Meet - else");
-            meetTask = new sendMeetRequest().execute(email);
+            meetTask = new sendMeetRequest().execute(mail, room);
         }
     }
 
@@ -1078,12 +1082,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * replyStatus should be OK or FAIL
      */
     public void meetReply(String replyStatus) {
-        String[] items = mTcpClient.meetRArray.peek().split("\\$");
+        String[] items = TCPClient.meetRArray.peek().split("\\$");
         //items[1] = "huguetascp10@gmail.com"; //to be removed
 
         //String replyStatus = "OK"; // TODO: Take the reply from the user (OK/FAIL)
-        String reply = items[1] + "$" + replyStatus;
-        mTcpClient.meetRArray.remove();
+        String reply = items[1] + "$" + items[2] + "$" + replyStatus;
+        TCPClient.meetRArray.remove();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             Log.e("meetReply", "Meet - if");
             meetTask = new sendMeetReply().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, reply);
@@ -1093,9 +1097,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-
-
-///COMUNICAÇÃO
+    //Comunicão
 
     public class backgroundReception extends AsyncTask<String, String, TCPClient> {
 
