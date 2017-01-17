@@ -106,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     //design
     NavigationView navigationView = null;
+    NavigationView navigationViewRight = null;
+    final Menu menu = navigationViewRight.getMenu();
     Toolbar toolbar = null;
     DrawerLayout drawer = null;
     ActionBarDrawerToggle toggle = null;
@@ -151,6 +153,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mRotVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
 
+
+
         // Create the LocationRequest object
         /*mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -176,6 +180,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         navigationView = (NavigationView) findViewById(R.id.nvView);
         navigationView.setNavigationItemSelectedListener(this);
+
+        navigationViewRight = (NavigationView) findViewById(R.id.nvView_right);
+
 
 
         //Communication Stuff
@@ -1407,6 +1414,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         String[] data = item.split("\\#");
                         FriendsData<String, String, String> trio = new FriendsData<>(data[0], data[1], data[2]);
                         FriendsDataList.add(trio);
+                        menu.add("ASD");
                     }
                     i++;
                 }
@@ -1418,6 +1426,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             for (FriendsData friendsdata : FriendsDataList) {
                 Log.e("AsyncFriends", "onProgressUpdate: " + friendsdata.getName() + friendsdata.getEmail() + friendsdata.getNumber());
             }
+
 
         }
     }
