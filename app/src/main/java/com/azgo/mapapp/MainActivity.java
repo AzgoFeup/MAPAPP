@@ -1175,15 +1175,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 };
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("Meet with "+message[1]+ "?").setPositiveButton("Yes", dialogClickListener)
+                builder.setMessage("Meet with "+message[1]+ "in" + message[2] + "?").setPositiveButton("Yes", dialogClickListener)
                         .setNegativeButton("No", dialogClickListener).show();
 
             } else if(message[0].equals("Meet")){       // Meet$email2$OK/FAIL$LAT$LON
-                if(message[2].equals("FAIL")){
+                if(message[3].equals("FAIL")){
                     Toast.makeText(MainActivity.this, "Meet Rejected", Toast.LENGTH_LONG).show();
-                } else if(message[2].equals("OK")){
-                    Log.e("MainActivity", "Start Meet: "+message[3]+";"+message[4]);
-                    //TODO: start navigation for that coordinates
+                } else if(message[3].equals("OK")){
+                    Log.e("MainActivity", "Start Meet: "+message[1]+" in "+message[2]);
+                    //TODO: start navigation for that room
                 }
 
 
@@ -1373,9 +1373,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected String doInBackground(String... email) {
             while (mTcpClient == null) ;
 
-            Log.e("ASYNC", "Sending MeetRequest to: " + email[0]);
+            Log.e("ASYNC", "Sending MeetRequest to: " + email[0] + email[1]);
             mTcpClient.meetStatus = false;
-            mTcpClient.sendMessage("Meet$" + email[0]);
+            mTcpClient.sendMessage("Meet$" + email[0] +"$" + email[1]);
 
             //TODO: waiting message for the user (onProgressUpdate)
             //while (!mTcpClient.meetStatus) publishProgress("Waiting");
