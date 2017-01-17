@@ -15,6 +15,46 @@
       },
       "oauth_client": [
         {
+          "client_id": "964670228893-6gln5iustujts12k04q0secsmkb2l1or.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azgo.mapapp",
+            "certificate_hash": "646B9C01595AC1B75673DD8D1D40E6FCF85897E7"
+          }
+        },
+        {
+          "client_id": "964670228893-uqpp803e6srplsmsvp13rv77t0v7omgv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azgo.mapapp",
+            "certificate_hash": "F2C825B581F6848971968E02A9399D69DB0AA9F8"
+          }
+        },
+        {
+          "client_id": "964670228893-r7jc8o93on93d3vek12g6liip7hduil5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azgo.mapapp",
+            "certificate_hash": "AA626F31F66B710B437A258D251D7E90AEC940D3"
+          }
+        },
+        {
+          "client_id": "964670228893-ur6840hnvsaa00p4fjg0tqlh07d5ftoo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azgo.mapapp",
+            "certificate_hash": "66DB6128674E74B23302F7D0BA54349EC8995955"
+          }
+        },
+        {
+          "client_id": "964670228893-me6irldoh0dolv1qndoroh4tvrb26oe1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azgo.mapapp",
+            "certificate_hash": "D040579B224354AD931468CF00316A07D805E317"
+          }
+        },
+        {
           "client_id": "964670228893-2sl5qbhvisi8utbgf2bee2i015krheor.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

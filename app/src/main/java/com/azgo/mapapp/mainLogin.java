@@ -58,6 +58,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class mainLogin extends AppCompatActivity implements
         View.OnClickListener
@@ -82,6 +83,7 @@ public class mainLogin extends AppCompatActivity implements
     private static boolean messageReceived;
     private static boolean errorLogin = false;
     private static String  sessionID;
+    private static AtomicBoolean asyncEnable = new AtomicBoolean(false);
 
     //telefone
     String mPhoneNumber;
@@ -113,6 +115,7 @@ public class mainLogin extends AppCompatActivity implements
 
         //get permission for contacts
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+
             getPermissionToReadUserContacts();
         }
 
@@ -125,16 +128,18 @@ public class mainLogin extends AppCompatActivity implements
             getPermissionToReadPhoneState();
 
         //Get phone number
-
-        TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        mPhoneNumber = tMgr.getLine1Number();
-
+        Log.e("version: ", "asf");
+        //TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        //mPhoneNumber = tMgr.getLine1Number();
+        //mPhoneNumber= null;
+        //Log.e("PhoneNumber: ", mPhoneNumber);
         myPrefs = this.getSharedPreferences(
                 "com.azgo.mapapp", Context.MODE_PRIVATE);
 
 
        if(null == mPhoneNumber)
         {
+            //Log.e("PhoneNumber: ", mPhoneNumber);
             //get phone number from preferences
             if((mPhoneNumber = myPrefs.getString("number", "ERROR")).equals("ERROR")) {
                 //get phone number
@@ -559,6 +564,17 @@ public class mainLogin extends AppCompatActivity implements
 
         @Override
         protected String doInBackground(String... message) {
+
+            if(asyncEnable.get())
+            {
+                Log.e("Asinc Login", "1st");
+                login.cancel(true);
+            }
+            else
+            {
+                asyncEnable.set(true);
+            }
+
             Thread.currentThread().setName("Login_ASyNCTASK-doInBackground");
             Log.e("login-AsyncTask [ " + Thread.currentThread().getId() + " | " +
                     Thread.currentThread().getName()+ " ]", "login(): Entering while");
@@ -578,7 +594,7 @@ public class mainLogin extends AppCompatActivity implements
                 Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
                         Thread.currentThread().getName() + " ]", "Sending login to server "
                 );
-
+                Log.e("CENAS", mPhoneNumber);
                 while(Objects.equals(mPhoneNumber, "ERROR") || mPhoneNumber == null);
 
                 mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName()
@@ -627,6 +643,7 @@ public class mainLogin extends AppCompatActivity implements
                 Log.e("AsyncTask", "onPostExecute");
                 Intent intent = new Intent(mainLogin.this, MainActivity.class);
                 intent.putExtra("sessionId", sessionID);
+                asyncEnable.set(false);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
                         | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);

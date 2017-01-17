@@ -15,6 +15,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by Jose Valverde on 17/11/2016.
@@ -50,7 +51,7 @@ class TCPClient implements Runnable {
     public static Object lockArray5 = new Object();
 
     private static TCPClient instance = null;
-    public static boolean killme = false;
+    public static AtomicBoolean killme = new AtomicBoolean(false);
 
     /**
      * Constructor of the class.
@@ -274,10 +275,11 @@ class TCPClient implements Runnable {
                 meetRStatus = true;
 
             }
-        } else if (items[0].equals("KILLME")) {
-            sendMessage("LOGOUT$" + MainActivity.sessionID);
-            stopClient();
-            killme = true;
+        } else if (items[0].equals("KillMe")) {
+            if(items[1].equals(MainActivity.sessionID)) {
+                killme.set(true);
+            }
+
         }
 
     }

@@ -1105,10 +1105,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 // Loop while doesn't receive
                 while ((!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)
-                        && (!mTcpClient.meetStatus) && !TCPClient.killme) ;
+                        && (!mTcpClient.meetStatus) && !TCPClient.killme.get()) ;
 
                 //if killme received
-                if(TCPClient.killme) {
+                if(TCPClient.killme.get()) {
                     Log.e("backgroundReception", "LoginOut");
                     signOut();
                     recAsync.cancel(true);
@@ -1215,7 +1215,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             connection = false;
                         } else if (TCPClient.connected) {
                             connection = true;
-                            mTcpClient.sendMessage("Coordinates$" + mAuth.getCurrentUser().getEmail() + "$" + coordenadas);
+                            //mTcpClient.sendMessage("Coordinates$" + mAuth.getCurrentUser().getEmail() + "$" + coordenadas);
                             Log.e("ASYNC", "Sending Coordinates$: " + coordenadas);
                         } else {
                             Log.e("ASYNC", "Waiting for connection ");
@@ -1264,7 +1264,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public class logout extends AsyncTask<String, String, String> {
 
-        private final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+//        private final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
 
         @Override
         protected String doInBackground(String... values) {
