@@ -108,6 +108,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     //design
     NavigationView navigationView = null;
+    NavigationView navigationViewRight = null;
+    final Menu menu = null;
     Toolbar toolbar = null;
     DrawerLayout drawer = null;
     ActionBarDrawerToggle toggle = null;
@@ -154,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mRotVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
 
+
+
         // Create the LocationRequest object
         /*mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -179,6 +183,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         navigationView = (NavigationView) findViewById(R.id.nvView);
         navigationView.setNavigationItemSelectedListener(this);
+
+        navigationViewRight = (NavigationView) findViewById(R.id.nvView_right);
+
 
 
         //Communication Stuff
@@ -1057,13 +1064,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     public void meetSend(View view) {
 
-        String email = "azgosetec@gmail.com";
+        String mail;
+        String room;
+        mail = "azgosetec@gmail.com";
+        room = "b001";
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             Log.e("meetSend", "Meet - if");
-            meetTask = new sendMeetRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, email);
+            meetTask = new sendMeetRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mail, room);
         } else {
             Log.e("meetSend", "Meet - else");
-            meetTask = new sendMeetRequest().execute(email);
+            meetTask = new sendMeetRequest().execute(mail, room);
         }
     }
 
@@ -1071,12 +1082,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * replyStatus should be OK or FAIL
      */
     public void meetReply(String replyStatus) {
-        String[] items = mTcpClient.meetRArray.peek().split("\\$");
+        String[] items = TCPClient.meetRArray.peek().split("\\$");
         //items[1] = "huguetascp10@gmail.com"; //to be removed
 
         //String replyStatus = "OK"; // TODO: Take the reply from the user (OK/FAIL)
-        String reply = items[1] + "$" + replyStatus;
-        mTcpClient.meetRArray.remove();
+        String reply = items[1] + "$" + items[2] + "$" + replyStatus;
+        TCPClient.meetRArray.remove();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             Log.e("meetReply", "Meet - if");
             meetTask = new sendMeetReply().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, reply);
@@ -1168,15 +1179,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 };
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("Meet with "+message[1]+ "?").setPositiveButton("Yes", dialogClickListener)
+                builder.setMessage("Meet with "+message[1]+ "in" + message[2] + "?").setPositiveButton("Yes", dialogClickListener)
                         .setNegativeButton("No", dialogClickListener).show();
 
             } else if(message[0].equals("Meet")){       // Meet$email2$OK/FAIL$LAT$LON
-                if(message[2].equals("FAIL")){
+                if(message[3].equals("FAIL")){
                     Toast.makeText(MainActivity.this, "Meet Rejected", Toast.LENGTH_LONG).show();
-                } else if(message[2].equals("OK")){
-                    Log.e("MainActivity", "Start Meet: "+message[3]+";"+message[4]);
-                    //TODO: start navigation for that coordinates
+                } else if(message[3].equals("OK")){
+                    Log.e("MainActivity", "Start Meet: "+message[1]+" in "+message[2]);
+                    //TODO: start navigation for that room
                 }
 
 
@@ -1366,9 +1377,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected String doInBackground(String... email) {
             while (mTcpClient == null) ;
 
-            Log.e("ASYNC", "Sending MeetRequest to: " + email[0]);
+            Log.e("ASYNC", "Sending MeetRequest to: " + email[0] + email[1]);
             mTcpClient.meetStatus = false;
-            mTcpClient.sendMessage("Meet$" + email[0]);
+            mTcpClient.sendMessage("Meet$" + email[0] +"$" + email[1]);
 
             //TODO: waiting message for the user (onProgressUpdate)
             //while (!mTcpClient.meetStatus) publishProgress("Waiting");
@@ -1463,6 +1474,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         String[] data = item.split("\\#");
                         FriendsData<String, String, String> trio = new FriendsData<>(data[0], data[1], data[2]);
                         FriendsDataList.add(trio);
+                        menu.add("ASD");
                     }
                     i++;
                 }
@@ -1480,6 +1492,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Log.e("AsyncFriends", "onProgressUpdate: " + friendsdata.getName() + friendsdata.getEmail() + friendsdata.getNumber());
 
             }
+
 
         }
     }
