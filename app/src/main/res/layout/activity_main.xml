@@ -23,6 +23,11 @@
         android:paddingTop="@dimen/activity_vertical_margin"
         tools:context=".MainActivity">
 
+        <include
+            layout="@layout/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
 
         <EditText
             android:layout_width="match_parent"
@@ -68,15 +73,6 @@
             android:layout_alignParentTop="true"
             android:layout_toStartOf="@+id/startActivityButton" />
 
-        <Button
-            android:text="meet"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/meet"
-            android:layout_above="@+id/editText"
-            android:layout_alignParentEnd="true"
-            android:onClick="meetSend" />
-
 
     </RelativeLayout>
 
@@ -88,11 +84,6 @@
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/drawer_view">
-
-        <include
-            layout="@layout/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
     </android.support.design.widget.NavigationView>
 
     <android.support.design.widget.NavigationView

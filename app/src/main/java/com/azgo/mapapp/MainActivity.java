@@ -111,10 +111,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //design
     NavigationView navigationView = null;
     NavigationView navigationViewRight = null;
-    final Menu menu = null;
+    Menu menuRight = null;
     Toolbar toolbar = null;
     DrawerLayout drawer = null;
     ActionBarDrawerToggle toggle = null;
+
+    String roomMeet,emailMeet;
 
 
     //Communicação
@@ -159,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mRotVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
 
+
+
         // Create the LocationRequest object
         /*mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -186,7 +190,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         navigationViewRight = (NavigationView) findViewById(R.id.nvView_right);
+        menuRight = navigationViewRight.getMenu();
+        //menuRight.add(0,1,0,"ASD0");
 
+        navigationViewRight.setNavigationItemSelectedListener(this);
 
         //Communication Stuff
 
@@ -683,14 +690,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 */
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        //getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
+    }*/
 
-    @Override
+    /*@Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
         if (toggle.onOptionsItemSelected(item)) {
@@ -700,12 +707,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_openRight) {
-            drawer.openDrawer(GravityCompat.END); /*Opens the Right Drawer*/
+            drawer.openDrawer(GravityCompat.END); /*Opens the Right Drawer
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -1038,13 +1045,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     SettingsActivityFragment.getTag()).commit();
 
         } else if (id == R.id.map) {
+            startActivity(new Intent(MainActivity.this, MainActivity.class));
+            /*
             final TextView textViewToChange = (TextView) findViewById(R.id.toolbar_title);
             textViewToChange.setText("MapApp");
             FragmentManager manager = getSupportFragmentManager();
             MapActivity MapActivityFragment = new MapActivity();
             manager.beginTransaction().replace(R.id.content_frame,
                     MapActivityFragment,
-                    MapActivityFragment.getTag()).commit();
+                    MapActivityFragment.getTag()).commit();*/
 
 
         } else if (id == R.id.logout) {
@@ -1054,6 +1063,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(intent);
         }
 
+        int i=0;
+        for (FriendsData friendsdata : FriendsDataList) {
+            i++;
+            if (id == i) {
+                emailMeet = getEmailByName(friendsdata.getName().toString());
+
+
+                android.support.v7.app.AlertDialog.Builder b = new android.support.v7.app.AlertDialog.Builder(this);
+                b.setTitle("Room to meet:");
+                final EditText input = new EditText(this);
+                b.setView(input);
+                b.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int whichButton)
+                    {
+                        roomMeet = input.getText().toString();
+
+                        Log.e("ROOM: ", roomMeet);
+                        Log.e("EMAIL: ", emailMeet);
+                        meetSend(emailMeet,roomMeet);
+                    }
+                });
+                b.create().show();
+
+            }
+        }
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -1080,7 +1116,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startNavigationTo(searchNode, mCurrentLocation);
     }
 
-    //COMUNICAÇÃO
+    //Communication
 
     //To meet Functions:
 
@@ -1089,12 +1125,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * <p>
      * TODO: Implement it to be used by design people
      */
-    public void meetSend(View view) {
+    public void meetSend(String mail, String room) {
 
-        String mail;
-        String room;
-        mail = "azgosetec@gmail.com";
-        room = "b001";
+        //String mail;
+        //String room;
+        //mail = "azgosetec@gmail.com";
+        //room = "b001";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             Log.e("meetSend", "Meet - if");
@@ -1104,6 +1140,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             meetTask = new sendMeetRequest().execute(mail, room);
         }
     }
+
 
     /**
      * Method that receives a the reply of a meet request and creats a asyncTask to send the
@@ -1495,16 +1532,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             synchronized (lockfriends) {
 
 
-                String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
+                //String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
 
                 //ToDebug:
-                /*
+
+
                 String[] items = new String[6];
                 for (int i = 0; i < 6; i++) {
                     items[i] = "ola" + i + "#ole" + i + "#oli" + i;
                     Log.d("FrindsAsinc", items[i]);
                 }
-                */
+
 
                 int i = 0;
                 for (String item : items) {
@@ -1513,12 +1551,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         String[] data = item.split("\\#");
                         FriendsData<String, String, String> trio = new FriendsData<>(data[0], data[1], data[2]);
                         FriendsDataList.add(trio);
-                        menu.add(data[0]);
+                        menuRight.add(0,i,0,data[0]);
                     }
                     i++;
                 }
 
+
+                //Message = FriendsDataList; //required: java.lang.string <-> found: java.util.list
+
+                //messageReceived = true;
+
             }
+
 
             //to match a name to a email:
             //newName - name to meet
@@ -1537,7 +1581,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
 
 
-        }
+
     }
+
+    }
+
+    public String getEmailByName(String newName){
+        for (FriendsData friendsdata : FriendsDataList) {
+            if (newName == friendsdata.getName())
+                return friendsdata.getEmail().toString();
+        }
+        return null;
+    }
+
+
 
 }
