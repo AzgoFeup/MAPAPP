@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -102,6 +103,8 @@ public class mainLogin extends AppCompatActivity implements
             getPermissionToReadUserContacts();
         }
 
+
+
         //get permission for contacts
         /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
             getPermissionToReadSMS();
@@ -140,6 +143,7 @@ public class mainLogin extends AppCompatActivity implements
 
 
         //SERVER
+        /*
         if (mTcpClient == null) {
             Log.e("mainLogin", "Connecting to Server");
 
@@ -154,6 +158,7 @@ public class mainLogin extends AppCompatActivity implements
                 reception = new connectTask().execute("");
             }
         }
+        */
 
         //***///
         //findViewById(R.id.button_facebook_login).setOnClickListener(this);
@@ -201,6 +206,7 @@ public class mainLogin extends AppCompatActivity implements
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // User is signed in
+                    if(!isNetworkConnected()) displayAlert("Disconnected, please connect");
                     Log.e(TAG, "onAuthStateChanged(): signed_in: userID: " + user.getUid());
                     goMainScreen();
                 } else {
@@ -386,6 +392,7 @@ public class mainLogin extends AppCompatActivity implements
 
 
     public void onClick(View v) {
+        if(!isNetworkConnected()) displayAlert("Disconnected, please connect");
         int i = v.getId();
         Log.d(TAG, "onClick" + i);
         if (i == R.id.gmail_sign_in_button) {
@@ -415,6 +422,21 @@ public class mainLogin extends AppCompatActivity implements
             }
             */
         //}
+
+        if (mTcpClient == null) {
+            Log.e("mainLogin", "Connecting to Server");
+
+            //AsyncTask<String,String,TCPClient> connectTask = new connectTask();
+            //AsyncTaskCompat.executeParallel(connectTask, "");
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                Log.e("mainLogin", "Async Task: connectTask - if");
+                reception = new connectTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            } else {
+                Log.e("mainLogin", "Async Task: connectTask - else");
+                reception = new connectTask().execute("");
+            }
+        }
 
         Log.e("mainLogin", "Async Task - login");
 
@@ -659,6 +681,12 @@ public class mainLogin extends AppCompatActivity implements
         alert.show();
     }
 
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
+    }
+
     void showDialogGetPhoneNumber() {
 
 
@@ -751,6 +779,8 @@ public class mainLogin extends AppCompatActivity implements
                     READ_PHONE_STATE_PERMISSIONS_REQUEST);
         }
     }
+
+
 
 
 }
