@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //design
     NavigationView navigationView = null;
     NavigationView navigationViewRight = null;
-    Menu menu = null;
+    Menu menuRight = null;
     Toolbar toolbar = null;
     DrawerLayout drawer = null;
     ActionBarDrawerToggle toggle = null;
@@ -185,8 +185,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         navigationViewRight = (NavigationView) findViewById(R.id.nvView_right);
-        menu = navigationViewRight.getMenu();
+        menuRight = navigationViewRight.getMenu();
+        menuRight.add(0,1,0,"ASD0");
 
+        navigationViewRight.setNavigationItemSelectedListener(this);
 
         //Communication Stuff
 
@@ -682,14 +684,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 */
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        //getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
+    }*/
 
-    @Override
+    /*@Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
         if (toggle.onOptionsItemSelected(item)) {
@@ -699,12 +701,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_openRight) {
-            drawer.openDrawer(GravityCompat.END); /*Opens the Right Drawer*/
+            drawer.openDrawer(GravityCompat.END); /*Opens the Right Drawer
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -1037,13 +1039,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     SettingsActivityFragment.getTag()).commit();
 
         } else if (id == R.id.map) {
+            startActivity(new Intent(MainActivity.this, MainActivity.class));
+            /*
             final TextView textViewToChange = (TextView) findViewById(R.id.toolbar_title);
             textViewToChange.setText("MapApp");
             FragmentManager manager = getSupportFragmentManager();
             MapActivity MapActivityFragment = new MapActivity();
             manager.beginTransaction().replace(R.id.content_frame,
                     MapActivityFragment,
-                    MapActivityFragment.getTag()).commit();
+                    MapActivityFragment.getTag()).commit();*/
 
 
         } else if (id == R.id.logout) {
@@ -1051,6 +1055,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent intent = new Intent(this, mainLogin.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+        }
+        else if (id == 1) {
+
+            Log.e("DEBUG", "IM HERE ASD");
+
         }
 
 
@@ -1472,7 +1481,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         String[] data = item.split("\\#");
                         FriendsData<String, String, String> trio = new FriendsData<>(data[0], data[1], data[2]);
                         FriendsDataList.add(trio);
-                        menu.add("ASD");
+                        menuRight.add(trio.getName());
                     }
                     i++;
                 }
