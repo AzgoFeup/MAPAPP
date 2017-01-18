@@ -1532,17 +1532,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             synchronized (lockfriends) {
 
 
-                //String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
+                String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
 
                 //ToDebug:
 
-
+                /*
                 String[] items = new String[6];
                 for (int i = 0; i < 6; i++) {
                     items[i] = "ola" + i + "#ole" + i + "#oli" + i;
                     Log.d("FrindsAsinc", items[i]);
                 }
-
+                */
 
                 int i = 0;
                 for (String item : items) {
