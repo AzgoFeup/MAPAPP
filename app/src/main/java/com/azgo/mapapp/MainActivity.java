@@ -1067,9 +1067,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         for (FriendsData friendsdata : FriendsDataList) {
             i++;
             if (id == i) {
-                Log.e("DEBUG: ", "IM AM HERE");
-    roomMeet="TEST ROOM";
-               /* android.support.v7.app.AlertDialog.Builder b = new android.support.v7.app.AlertDialog.Builder(this);
+                emailMeet = getEmailByName(friendsdata.getName().toString());
+
+
+                android.support.v7.app.AlertDialog.Builder b = new android.support.v7.app.AlertDialog.Builder(this);
                 b.setTitle("Room to meet:");
                 final EditText input = new EditText(this);
                 b.setView(input);
@@ -1079,14 +1080,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void onClick(DialogInterface dialog, int whichButton)
                     {
                         roomMeet = input.getText().toString();
+
+                        Log.e("ROOM: ", roomMeet);
+                        Log.e("EMAIL: ", emailMeet);
+                        meetSend(emailMeet,roomMeet);
                     }
                 });
-                b.create().show();*/
-                emailMeet = getEmailByName(friendsdata.getName().toString());
-                Log.e("ROOM: ", roomMeet);
-                Log.e("EMAIL: ", emailMeet);
-                meetSend(emailMeet,roomMeet);
-
+                b.create().show();
 
             }
         }
@@ -1534,17 +1534,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             synchronized (lockfriends) {
 
 
-                String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
+                //String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
 
                 //ToDebug:
 
-                /*
+
                 String[] items = new String[6];
                 for (int i = 0; i < 6; i++) {
                     items[i] = "ola" + i + "#ole" + i + "#oli" + i;
                     Log.d("FrindsAsinc", items[i]);
                 }
-                */
+
 
                 int i = 0;
                 for (String item : items) {
@@ -1581,6 +1581,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     }
+
     public String getEmailByName(String newName){
         for (FriendsData friendsdata : FriendsDataList) {
             if (newName == friendsdata.getName())
@@ -1588,5 +1589,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return null;
     }
+
+
 
 }
