@@ -1562,7 +1562,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 //messageReceived = true;
 
             }
-            */
+
 
 
             //to match a name to a email:
