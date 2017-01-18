@@ -114,6 +114,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     DrawerLayout drawer = null;
     ActionBarDrawerToggle toggle = null;
 
+    String roomMeet,emailMeet;
+
 
     //Communicação
     public TCPClient mTcpClient;
@@ -186,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         navigationViewRight = (NavigationView) findViewById(R.id.nvView_right);
         menuRight = navigationViewRight.getMenu();
-        menuRight.add(0,1,0,"ASD0");
+        //menuRight.add(0,1,0,"ASD0");
 
         navigationViewRight.setNavigationItemSelectedListener(this);
 
@@ -1056,12 +1058,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }
-        else if (id == 1) {
 
-            Log.e("DEBUG", "IM HERE ASD");
+        int i=0;
+        for (FriendsData friendsdata : FriendsDataList) {
+            i++;
+            if (id == i) {
+                Log.e("DEBUG: ", "IM AM HERE");
+    roomMeet="TEST ROOM";
+               /* android.support.v7.app.AlertDialog.Builder b = new android.support.v7.app.AlertDialog.Builder(this);
+                b.setTitle("Room to meet:");
+                final EditText input = new EditText(this);
+                b.setView(input);
+                b.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int whichButton)
+                    {
+                        roomMeet = input.getText().toString();
+                    }
+                });
+                b.create().show();*/
+                emailMeet = getEmailByName(friendsdata.getName().toString());
+                Log.e("ROOM: ", roomMeet);
+                Log.e("EMAIL: ", emailMeet);
+                meetSend(emailMeet,roomMeet);
 
+
+            }
         }
-
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -1071,7 +1095,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /*
      * Get the number from the contacts list
      */
-    public void meetSend(View view, String mail, String room) {
+    public void meetSend(String mail, String room) {
 
         //String mail;
         //String room;
@@ -1443,11 +1467,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected String doInBackground(String... message) {
             while (mTcpClient == null) ;
-            while (friends == "Friends") ;
+            //while (friends == "Friends") ;
 
-            if (friends != "Friends") {
-                mTcpClient.sendMessage(friends);
-                Log.e("AsyncFriends", "Sending Friends: " + friends);
+            if (friends != "ole") {
+                String teste = "Friends$fakeemail@gmail.com$teste$testn";
+                mTcpClient.sendMessage(teste);
+                //mTcpClient.sendMessage(friends);
+                Log.e("AsyncFriends", "Sending Friends: " + teste);
             } else {
                 Log.e("AsyncFriends", "Error sending Friends");
             }
@@ -1475,23 +1501,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
 
+                //ToDebug:
+                /*
+                String[] items = new String[6];
+                for (int i = 0; i < 6; i++) {
+                    items[i] = "ola" + i + "#ole" + i + "#oli" + i;
+                    Log.d("FrindsAsinc", items[i]);
+                }
+                */
+
+                int i = 0;
                 for (String item : items) {
-                    int i = 0;
-                    if (i != 0) {
+
+                    if (i != 0) { //ignore first message
                         String[] data = item.split("\\#");
                         FriendsData<String, String, String> trio = new FriendsData<>(data[0], data[1], data[2]);
                         FriendsDataList.add(trio);
-                        menuRight.add(trio.getName());
+                        menuRight.add(0,i,0,data[0]);
                     }
                     i++;
                 }
 
-
-                //Message = FriendsDataList; //required: java.lang.string <-> found: java.util.list
-
-                //messageReceived = true;
-
             }
+
+            //to match a name to a email:
+            //newName - name to meet
+            /*
+            for (FriendsData friendsdata : FriendsDataList) {
+                if (newName == friendsdata.getName())
+                    return friendsdata.getEmail();
+            }
+            */
 
 
             for (FriendsData friendsdata : FriendsDataList) {
@@ -1501,7 +1541,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
 
 
+
+    }
+
+    }
+    public String getEmailByName(String newName){
+        for (FriendsData friendsdata : FriendsDataList) {
+            if (newName == friendsdata.getName())
+                return friendsdata.getEmail().toString();
         }
+        return null;
     }
 
 }

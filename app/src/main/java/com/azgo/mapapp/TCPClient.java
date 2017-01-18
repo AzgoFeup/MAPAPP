@@ -255,6 +255,8 @@ class TCPClient implements Runnable {
         } else if (items[0].equals("Friends")) {
             Log.e("TCPClient", "messageReceived is friends");
             synchronized (lockArray3) {
+
+                Log.e("DEBUG", "On Friends");
                 friendsArray.add(message);
                 friendsReceived = true;
             }
