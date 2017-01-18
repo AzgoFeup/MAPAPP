@@ -1282,10 +1282,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 Log.d("backgroundSending", "waitConnection - if");
-                waitConnection = new waitConnection().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+                waitConnection = new lostConnection().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             } else {
                 Log.d("backgroundSending", "waitConnection - else");
-                waitConnection = new waitConnection().execute();
+                waitConnection = new lostConnection().execute();
             }
 
 
@@ -1356,23 +1356,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public class waitConnection extends AsyncTask<String, String, String> {
+    public class lostConnection extends AsyncTask<String, String, String> {
 
         private final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
 
         @Override
         protected String doInBackground(String... values) {
 
-            while (!TCPClient.connected) {
-                try {
-                    Log.e("AsyncTask", "Sending Login");
-                    Thread.sleep(1000);
-                    mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName() + "$" + mAuth.getCurrentUser().getEmail());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
 
-            }
+            Log.e("AsyncTask", "Login out");
+
+            signOut();
 
             return null;
         }
@@ -1389,7 +1383,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected void onPostExecute(String value) {
             super.onPostExecute(value);
-            Log.e("AsyncTask", "onPostExecute");
+            Toast.makeText(MainActivity.this, "Lost connection, LoginOut",
+                    Toast.LENGTH_SHORT).show();
             //this.dialog.dismiss();
 
         }

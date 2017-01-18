@@ -508,7 +508,7 @@ public class mainLogin extends AppCompatActivity implements
                     Thread.currentThread().getName() + "]", "Cenas " + mTcpClient);
             if (mTcpClient == null) {
                 errorLogin = true;
-                displayAlert("Error");
+                displayAlert("Connection problems");
             }
         }
 
@@ -518,7 +518,7 @@ public class mainLogin extends AppCompatActivity implements
             Log.e("connectTask-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
                     Thread.currentThread().getName() + " ]", "Canceled");
             errorLogin = true;
-            if (mTcpClient == null) displayAlert("Error");
+            if (mTcpClient == null) displayAlert("Connection error, check internet connection");
         }
     }
 
@@ -561,6 +561,10 @@ public class mainLogin extends AppCompatActivity implements
                         Thread.currentThread().getName() + " ]", "checking mTCPClient: "
                         + mTcpClient);
 
+
+
+
+                while (mTcpClient == null) if (errorLogin) return "False";
 
                 Log.d("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
                         Thread.currentThread().getName() + " ]", "Checking status: " + mTcpClient.checkForSocketStatus());
