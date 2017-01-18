@@ -20,13 +20,18 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -42,6 +47,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import org.json.JSONException;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -84,6 +93,12 @@ public class mainLogin extends AppCompatActivity implements
     private SharedPreferences.Editor myPrefsEditor;
     //MISC
     private ProgressBar mProgress;
+
+    //Facebook
+    CallbackManager callbackManager = null;
+
+    Button fb = null;
+    LoginButton loginButton = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -195,6 +210,7 @@ public class mainLogin extends AppCompatActivity implements
         /*********************************
          *       FIREBASE
          ***************************/
+        Log.d("mainLogin", "Starting Facebook");
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
         // [END initialize_auth]
@@ -220,11 +236,9 @@ public class mainLogin extends AppCompatActivity implements
         /**************
          * FACEBOOK
          ************/
-
-        // Initialize Facebook Login button
+        Log.d("mainLogin", "Starting Facebook");
         mCallbackManager = CallbackManager.Factory.create();
-        /*
-        LoginButton loginButton = (LoginButton) findViewById(R.id.button_facebook_login);
+        loginButton = (LoginButton) findViewById(R.id.login_button);
         loginButton.setReadPermissions("email", "public_profile");
         loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
@@ -250,7 +264,7 @@ public class mainLogin extends AppCompatActivity implements
                 // [END_EXCLUDE]
             }
         });
-        // [END initialize_fblogin]
+
 
         /**
          *  GMAIL
@@ -295,8 +309,9 @@ public class mainLogin extends AppCompatActivity implements
                         // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
                             Log.w(TAG, "signInWithCredential", task.getException());
-                            Toast.makeText(mainLogin.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mainLogin.this, "Authentication failed: " + task.getException().getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                            mAuth.signOut();
                         } else goMainScreen();
                         // [START_EXCLUDE]
                         //hideProgressDialog();
@@ -397,7 +412,10 @@ public class mainLogin extends AppCompatActivity implements
         Log.d(TAG, "onClick" + i);
         if (i == R.id.gmail_sign_in_button) {
             signIn();
-        } else if (i == R.id.buttonDebug) {
+        } else if (i == R.id.button_facebook_login){
+            loginButton.performClick();
+        }
+        else if (i == R.id.buttonDebug) {
             Intent intent = new Intent(mainLogin.this, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
                     | Intent.FLAG_ACTIVITY_NEW_TASK);
