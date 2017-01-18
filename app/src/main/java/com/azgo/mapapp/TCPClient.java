@@ -32,9 +32,11 @@ class TCPClient implements Runnable {
     public boolean friendsReceived = false;
     public boolean meetStatus = false;
     public boolean meetRStatus = false;
+
     private PrintWriter out;
     private BufferedReader in;
     public Socket socket;
+
     static Queue<String> loginArray;
     static Queue<String> comunicationArray;
     static Queue<String> friendsArray;
@@ -44,11 +46,11 @@ class TCPClient implements Runnable {
     static public boolean connected = false;
     static public Thread t;
 
-    public static Object lockArray1 = new Object();
-    public static Object lockArray2 = new Object();
-    public static Object lockArray3 = new Object();
-    public static Object lockArray4 = new Object();
-    public static Object lockArray5 = new Object();
+    public static final Object lockArray1 = new Object();
+    public static final Object lockArray2 = new Object();
+    public static final Object lockArray3 = new Object();
+    public static final Object lockArray4 = new Object();
+    public static final Object lockArray5 = new Object();
 
     private static TCPClient instance = null;
     public static AtomicBoolean killme = new AtomicBoolean(false);
@@ -167,7 +169,7 @@ class TCPClient implements Runnable {
         Thread.currentThread().setName("TCP_RUN");
 
         mRun = true;
-        int nullmessage = 0;
+        int nullMessage = 0;
 
         Log.e("TCPClient", "run(): Starting");
         try {
@@ -184,17 +186,18 @@ class TCPClient implements Runnable {
             while (mRun) {
                 Log.d("TCPClient", "run(): Receiving....");
                 serverMessage = in.readLine();
-                Log.d("TCPClient", "run(): Received: " + serverMessage);
+                Log.d("TCPClient", "run(): Received message");
 
                 if (serverMessage != null) {
-                    nullmessage = 0;
+                    nullMessage = 0;
                     //call the method messageReceived from MyActivity class
                     messageReceived(serverMessage);
                     //messageAdded = true;
-                } else if (nullmessage == 1000) { //Great number???
+                } else if (nullMessage == 1000) { //Great number???
+                    Log.e("TCPClient", "run(): Problems");
                     throw new Exception("No Connection");
                 } else {
-                    nullmessage++;
+                    nullMessage++;
                 }
                 serverMessage = null;
             }
@@ -221,6 +224,16 @@ class TCPClient implements Runnable {
 
     }
 
+    public boolean checkForSocketStatus() {
+        if (socket.isConnected()) {
+            if (out == null) return false;
+            if (in == null) return false;
+            return true;
+        } else
+            return false;
+
+    }
+
     public void changeSocketTimout(int timeout) {
         if (socket.isConnected())
             try {
@@ -235,11 +248,7 @@ class TCPClient implements Runnable {
         Log.e("TCPClient", "messageReceived(): " + message);
 
         String[] items = message.split("\\$");
-        for (String item : items) {
-            System.out.println("item = " + item);
-        }
 
-        Log.e("MENSAGEM", items[0]);
         if (items[0].equals("Login")) {
             Log.e("TCPClient", "messageReceived: is login");
             synchronized (lockArray1) {
@@ -261,13 +270,7 @@ class TCPClient implements Runnable {
         } else if (items[0].equals("Meet")) {
             synchronized (lockArray4) {
                 meetArray.add(message);
-                meetStatus=true;   //false while wait for response
-            }
-        } else if (items[0].equals("MeetRequest")) {
-            synchronized (lockArray5) {
-                meetRArray.add(message);
-                meetRStatus = true;
-
+                meetStatus = true;   //false while wait for response
             }
         } else if (items[0].equals("MeetRequest")) {
             synchronized (lockArray5) {
@@ -276,7 +279,7 @@ class TCPClient implements Runnable {
 
             }
         } else if (items[0].equals("KillMe")) {
-            if(items[1].equals(MainActivity.sessionID)) {
+            if (items[1].equals(MainActivity.sessionID)) {
                 killme.set(true);
             }
 

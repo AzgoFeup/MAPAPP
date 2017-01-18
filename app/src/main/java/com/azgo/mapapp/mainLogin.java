@@ -1,47 +1,32 @@
 package com.azgo.mapapp;
 
 
-
-import android.*;
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.os.AsyncTaskCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
-import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -61,8 +46,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class mainLogin extends AppCompatActivity implements
-        View.OnClickListener
-{
+        View.OnClickListener {
 
     //General
     private String TAG = "Login Activity";
@@ -82,7 +66,7 @@ public class mainLogin extends AppCompatActivity implements
     private static String Message;
     private static boolean messageReceived;
     private static boolean errorLogin = false;
-    private static String  sessionID;
+    private static String sessionID;
     private static AtomicBoolean asyncEnable = new AtomicBoolean(false);
 
     //telefone
@@ -112,7 +96,6 @@ public class mainLogin extends AppCompatActivity implements
         setContentView(R.layout.activity_login);
 
 
-
         //get permission for contacts
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
 
@@ -120,31 +103,22 @@ public class mainLogin extends AppCompatActivity implements
         }
 
         //get permission for contacts
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
             getPermissionToReadSMS();
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)
             getPermissionToReadPhoneState();
+*/
 
-        //Get phone number
-        Log.e("version: ", "asf");
-        //TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        //mPhoneNumber = tMgr.getLine1Number();
-        //mPhoneNumber= null;
-        //Log.e("PhoneNumber: ", mPhoneNumber);
         myPrefs = this.getSharedPreferences(
                 "com.azgo.mapapp", Context.MODE_PRIVATE);
 
 
-       if(null == mPhoneNumber)
-        {
-            //Log.e("PhoneNumber: ", mPhoneNumber);
-            //get phone number from preferences
-            if((mPhoneNumber = myPrefs.getString("number", "ERROR")).equals("ERROR")) {
-                //get phone number
-                showDialogGetPhoneNumber();
-            }
+        //get phone number from preferences
+        if ((mPhoneNumber = myPrefs.getString("number", "ERROR")).equals("ERROR")) {
+            //get phone number
+            showDialogGetPhoneNumber();
         }
         Log.e("PhoneNumber: ", mPhoneNumber);
 
@@ -163,7 +137,6 @@ public class mainLogin extends AppCompatActivity implements
 */
         //if (mPhoneNumber == )
         //can return null
-
 
 
         //SERVER
@@ -296,9 +269,6 @@ public class mainLogin extends AppCompatActivity implements
     }
 
 
-
-
-
     // [START auth_with_facebook]
     private void handleFacebookAccessToken(AccessToken token) {
         Log.d(TAG, "handleFacebookAccessToken:" + token);
@@ -321,8 +291,7 @@ public class mainLogin extends AppCompatActivity implements
                             Log.w(TAG, "signInWithCredential", task.getException());
                             Toast.makeText(mainLogin.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-                        }
-                        else goMainScreen();
+                        } else goMainScreen();
                         // [START_EXCLUDE]
                         //hideProgressDialog();
                         // [END_EXCLUDE]
@@ -349,9 +318,7 @@ public class mainLogin extends AppCompatActivity implements
                             Toast.makeText(mainLogin.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
 
-                        }
-
-                        else {
+                        } else {
                             Log.e(TAG, "LOGINGOGGLE: DONE");
                             goMainScreen();
                         }
@@ -359,7 +326,6 @@ public class mainLogin extends AppCompatActivity implements
                     }
                 });
     }
-
 
 
     @Override
@@ -377,14 +343,14 @@ public class mainLogin extends AppCompatActivity implements
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
-                Log.e(TAG, "ACCOUNT: "+ account.toString());
+                Log.e(TAG, "ACCOUNT: " + account.toString());
             } else {
                 Log.e(TAG, "LOGINGOOGLE: False");
                 Toast.makeText(mainLogin.this, "Authentication failed.",
                         Toast.LENGTH_SHORT).show();
 
             }
-        }else{
+        } else {
             //If not request code is RC_SIGN_IN it must be facebook
             mCallbackManager.onActivityResult(requestCode, resultCode, data);
         }
@@ -395,7 +361,7 @@ public class mainLogin extends AppCompatActivity implements
         Log.e(TAG, "signIn(): GOOGLE");
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
-        Log.e("mainLogin ","signIn() END");
+        Log.e("mainLogin ", "signIn() END");
     }
 
     @Override
@@ -421,11 +387,10 @@ public class mainLogin extends AppCompatActivity implements
 
     public void onClick(View v) {
         int i = v.getId();
-        Log.d(TAG,"onClick"+i);
+        Log.d(TAG, "onClick" + i);
         if (i == R.id.gmail_sign_in_button) {
             signIn();
-        }
-        else if (i == R.id.buttonDebug){
+        } else if (i == R.id.buttonDebug) {
             Intent intent = new Intent(mainLogin.this, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
                     | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -467,8 +432,7 @@ public class mainLogin extends AppCompatActivity implements
     }
 
 
-
-    public class connectTask extends AsyncTask<String,String,TCPClient> {
+    public class connectTask extends AsyncTask<String, String, TCPClient> {
 
         @Override
         protected TCPClient doInBackground(String... message) {
@@ -485,8 +449,8 @@ public class mainLogin extends AppCompatActivity implements
                     "connectTask: returned mTcpClient");
 
 
-            while(!mTcpClient.connected) { //Best way to do?
-                if(mTcpClient.socketTimeout) {
+            while (!mTcpClient.connected) { //Best way to do?
+                if (mTcpClient.socketTimeout) {
                     Log.e("connectTask [" + Thread.currentThread().getId() + "]", "return");
                     mTcpClient = null;
                     return mTcpClient;
@@ -509,7 +473,7 @@ public class mainLogin extends AppCompatActivity implements
                 try {
                     publishProgress(TCPClient.loginArray.remove());
                 } catch (NoSuchElementException e) {
-                    Log.e("AsyncTask [" + Thread.currentThread().getId() + "]" ,
+                    Log.e("AsyncTask [" + Thread.currentThread().getId() + "]",
                             "Easy Fix");
                 }
                 mTcpClient.loginReceived = false;
@@ -541,7 +505,7 @@ public class mainLogin extends AppCompatActivity implements
         protected void onPostExecute(TCPClient tcpClient) {
             super.onPostExecute(tcpClient);
             Log.e("connectTask-AsyncTask  [" + Thread.currentThread().getId() + "| " +
-                    Thread.currentThread().getName()+ "]", "Cenas "+mTcpClient);
+                    Thread.currentThread().getName() + "]", "Cenas " + mTcpClient);
             if (mTcpClient == null) {
                 errorLogin = true;
                 displayAlert("Error");
@@ -552,53 +516,71 @@ public class mainLogin extends AppCompatActivity implements
         protected void onCancelled() {
             super.onCancelled();
             Log.e("connectTask-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
-                    Thread.currentThread().getName()+ " ]", "Canceled");
+                    Thread.currentThread().getName() + " ]", "Canceled");
             errorLogin = true;
             if (mTcpClient == null) displayAlert("Error");
         }
     }
 
-    public class login extends AsyncTask<String,String,String> {
+    public class login extends AsyncTask<String, String, String> {
 
-        private final ProgressDialog dialog = new ProgressDialog(mainLogin.this);
+        ProgressDialog pDialog;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Thread.currentThread().setName("Login-async");
+            pDialog = new ProgressDialog(mainLogin.this);
+            pDialog.setMessage("Authenticating user...");
+
+            if (!pDialog.isShowing()) {
+                pDialog.show();
+            }
+            Log.e("AsyncTask", "Processing created");
+        }
 
         @Override
         protected String doInBackground(String... message) {
 
-            if(asyncEnable.get())
-            {
-                Log.e("Asinc Login", "1st");
+            if (asyncEnable.get()) {
+                Log.e("Asinc Login" + Thread.currentThread().getId(), "Returning");
                 login.cancel(true);
-            }
-            else
-            {
+                Thread.currentThread().interrupt();
+                return null;
+            } else {
                 asyncEnable.set(true);
             }
 
-            Thread.currentThread().setName("Login_ASyNCTASK-doInBackground");
+            Thread.currentThread().setName("Login-doInBackground");
             Log.e("login-AsyncTask [ " + Thread.currentThread().getId() + " | " +
-                    Thread.currentThread().getName()+ " ]", "login(): Entering while");
+                    Thread.currentThread().getName() + " ]", "login(): Entering while");
 
 
             while (true) {
-                Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                Log.d("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
                         Thread.currentThread().getName() + " ]", "checking mTCPClient: "
                         + mTcpClient);
 
-                while (mTcpClient == null) {
+
+                Log.d("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                        Thread.currentThread().getName() + " ]", "Checking status: " + mTcpClient.checkForSocketStatus());
+
+                Log.d("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                        Thread.currentThread().getName() + " ]", "Checking: " + !(mTcpClient != null && mTcpClient.checkForSocketStatus()));
+
+                while (!(mTcpClient != null && mTcpClient.checkForSocketStatus())) {
                     if (errorLogin) return "False";
                 }
 
-                Log.e("CEBAS", String.valueOf(mAuth.getCurrentUser().getProviderData()));
 
-                Log.e("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
+                //Wait for phoneNumber...
+                while (Objects.equals(mPhoneNumber, "ERROR") || mPhoneNumber == null) ;
+
+                Log.d("login-AsyncTask  [ " + Thread.currentThread().getId() + " | " +
                         Thread.currentThread().getName() + " ]", "Sending login to server "
                 );
-                Log.e("CENAS", mPhoneNumber);
-                while(Objects.equals(mPhoneNumber, "ERROR") || mPhoneNumber == null);
-
                 mTcpClient.sendMessage("Login$" + mAuth.getCurrentUser().getDisplayName()
-                        + "$" + mAuth.getCurrentUser().getEmail() +"$" + mPhoneNumber);
+                        + "$" + mAuth.getCurrentUser().getEmail() + "$" + mPhoneNumber);
 
                 // Waits for the server response
                 while (!messageReceived) ;
@@ -606,39 +588,40 @@ public class mainLogin extends AppCompatActivity implements
                         Thread.currentThread().getName() + " ]", "Message Received");
                 messageReceived = false;
 
-                //Login Done?
-                //TODO: Change this Server side ready
+
                 String[] items = Message.split("\\$");
                 if (items[0].equals("Login")) {
-                    //TODO: WAIT FOR SERVER TO DO STUFF
-                    //sessionID = "1234";
+                    //To save..
                     sessionID = items[1];
                     break;
+                } else {
+                    //Unexpected else
+                    Toast.makeText(mainLogin.this, "Problems with authentication, try again later",
+                            Toast.LENGTH_SHORT).show();
+                    return null;
                 }
 
-                //There is no else
             }
 
             return "True";
 
         }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            Thread.currentThread().setName("Login-async");
-            //this.dialog.setMessage("Processing...");
-            //this.dialog.show();
-            Log.e("AsyncTask", "Processing created");
-        }
 
         @Override
         protected void onPostExecute(String value) {
             super.onPostExecute(value);
 
+            if (pDialog.isShowing()) {
+                pDialog.dismiss();
+            }
+
+            if (value == null) {
+                Log.e("login-AsyncTask", "Returning without entering");
+                return;
+            }
             Log.e("AsyncTask-login", "onPostExecute");
-            if(value.equals("True")) {
-                // this.dialog.dismiss();
+            if (value.equals("True")) {
                 reception.cancel(true);
                 Log.e("AsyncTask", "onPostExecute");
                 Intent intent = new Intent(mainLogin.this, MainActivity.class);
@@ -647,20 +630,16 @@ public class mainLogin extends AppCompatActivity implements
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
                         | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
-                if(this.isCancelled()) cancel(true);
-            }
-            else {
-                this.dialog.dismiss();
+                if (this.isCancelled()) cancel(true);
+            } else {
+
                 Log.e("AsyncTask", "login() mTcpClient == null");
             }
         }
     }
 
 
-
-
-    private void displayAlert(String message)
-    {
+    private void displayAlert(String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message).setCancelable(
                 false).setNegativeButton("Close",
@@ -676,19 +655,16 @@ public class mainLogin extends AppCompatActivity implements
         alert.show();
     }
 
-    void showDialogGetPhoneNumber(){
-
+    void showDialogGetPhoneNumber() {
 
 
         AlertDialog.Builder b = new AlertDialog.Builder(this);
         b.setTitle("Please enter your number");
         final EditText input = new EditText(this);
         b.setView(input);
-        b.setPositiveButton("OK", new DialogInterface.OnClickListener()
-        {
+        b.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int whichButton)
-            {
+            public void onClick(DialogInterface dialog, int whichButton) {
                 // SHOULD NOW WORK
                 Log.e("ALERT: ", input.getText().toString());
                 myPrefsEditor = myPrefs.edit();
@@ -706,6 +682,7 @@ public class mainLogin extends AppCompatActivity implements
 
     // Identifier for the permission request
     private static final int READ_CONTACTS_PERMISSIONS_REQUEST = 1;
+
     // Called when the user is performing an action which requires the app to read the
     // user's contacts
     @TargetApi(Build.VERSION_CODES.M)
@@ -734,39 +711,14 @@ public class mainLogin extends AppCompatActivity implements
                     READ_CONTACTS_PERMISSIONS_REQUEST);
         }
     }
+
     private static final int READ_SMS_PERMISSIONS_REQUEST = 1;
     // Called when the user is performing an action which requires the app to read the
     // user's contacts
 
-    @TargetApi(Build.VERSION_CODES.M)
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public void getPermissionToReadSMS() {
-        // 1) Use the support library version ContextCompat.checkSelfPermission(...) to avoid
-        // checking the build version since Context.checkSelfPermission(...) is only available
-        // in Marshmallow
-        // 2) Always check for permission (even if permission has already been granted)
-        // since the user can revoke permissions at any time through Settings
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_SMS)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // The permission is NOT already granted.
-            // Check if the user has been asked about this permission already and denied
-            // it. If so, we want to give more explanation about why the permission is needed.
-            if (shouldShowRequestPermissionRationale(
-                    Manifest.permission.READ_SMS)) {
-                // Show our own UI to explain to the user why we need to read the contacts
-                // before actually requesting the permission and showing the default UI
-            }
-
-            // Fire off an async request to actually get the permission
-            // This will show the standard permission request dialog UI
-            requestPermissions(new String[]{android.Manifest.permission.READ_SMS},
-                    READ_SMS_PERMISSIONS_REQUEST);
-        }
-    }
-
     // Identifier for the permission request
     private static final int READ_PHONE_STATE_PERMISSIONS_REQUEST = 1;
+
     // Called when the user is performing an action which requires the app to read the
     // user's contacts
     @TargetApi(Build.VERSION_CODES.M)

@@ -1,8 +1,8 @@
 package com.azgo.mapapp;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -74,6 +74,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, SensorEventListener {
 
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AsyncTask meetTask;
     //static Queue<String> numbersArray = new LinkedList<>();
     static String friends = "Friends";
-    public static String sessionID ;
+    public static String sessionID;
 
     static List<FriendsData<String, String, String>> FriendsDataList = new ArrayList<>();
 
@@ -151,11 +152,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Thread.currentThread().setName("MainActivity");
         setContentView(R.layout.activity_main);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mRotVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-
-
 
 
         // Create the LocationRequest object
@@ -187,14 +187,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationViewRight = (NavigationView) findViewById(R.id.nvView_right);
 
 
-
         //Communication Stuff
 
         mAuth = FirebaseAuth.getInstance();
 
         sessionID = getIntent().getStringExtra("sessionId");
 
-        Log.e("onCreate: ", "SeccionID is:" + sessionID);
+        Log.d("onCreate: ", "SeccionID is:" + sessionID);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             recAsync = new backgroundReception().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
@@ -935,10 +934,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             Log.e("SignOut", "Logout - if");
-            logAsync = new logout().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
+            logAsync = new backgroundLogout().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         } else {
             Log.e("SignOut", "Logout - if");
-            logAsync = new logout().execute();
+            logAsync = new backgroundLogout().execute();
         }
     }
 
@@ -1059,8 +1058,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    /*
-     * Get the number from the contacts list
+
+    /**
+     * Api time method to help communication
+     *
+     * @param room String with name of room
+     */
+    public void navigateToRoom(String room) {
+
+        Graph.Node searchNode = null;
+        for (Graph.Node no : nodes) {
+            if (no.getLabel().equals(room)) {
+                searchNode = no;
+                break;
+            }
+        }
+        if (searchNode == null)
+            //TODO: something
+            startNavigationTo(searchNode, mCurrentLocation);
+    }
+
+    //COMUNICAÇÃO
+
+    //To meet Functions:
+
+    /**
+     * Method that receives email and room to meet and creates thread that sends a meet request
+     * <p>
+     * TODO: Implement it to be used by design people
      */
     public void meetSend(View view) {
 
@@ -1078,16 +1103,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /*
-     * replyStatus should be OK or FAIL
+    /**
+     * Method that receives a the reply of a meet request and creats a asyncTask to send the
+     * and starts the navigation
+     *
+     * @param replyStatus
      */
     public void meetReply(String replyStatus) {
         String[] items = TCPClient.meetRArray.peek().split("\\$");
-        //items[1] = "huguetascp10@gmail.com"; //to be removed
 
-        //String replyStatus = "OK"; // TODO: Take the reply from the user (OK/FAIL)
+        if (replyStatus.equals("OK")) {
+            Toast.makeText(MainActivity.this, "Starting Navigation to " + items[2], Toast.LENGTH_LONG).show();
+            Log.e("Meet", "Start navigation to: " + items[2]);
+            navigateToRoom(items[2].toUpperCase());
+        }
+
         String reply = items[1] + "$" + items[2] + "$" + replyStatus;
         TCPClient.meetRArray.remove();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             Log.e("meetReply", "Meet - if");
             meetTask = new sendMeetReply().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, reply);
@@ -1098,9 +1131,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
-///COMUNICAÇÃO
-
+    /**
+     * Async task that listens to server information
+     */
     public class backgroundReception extends AsyncTask<String, String, TCPClient> {
 
         @Override
@@ -1111,16 +1144,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             while (mTcpClient != null) {
 
-
-
-
                 // Loop while doesn't receive
                 while ((!mTcpClient.comunicationReceived) && (!mTcpClient.meetRStatus)
                         && (!mTcpClient.meetStatus) && !TCPClient.killme.get()) ;
 
                 //if killme received
-                if(TCPClient.killme.get()) {
-                    Log.e("backgroundReception", "LoginOut");
+                if (TCPClient.killme.get()) {
+                    Log.e("AsyncTask Reception:", "LoginOut");
                     signOut();
                     recAsync.cancel(true);
                 }
@@ -1128,23 +1158,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 synchronized (lockReception) {
                     if (!TCPClient.comunicationArray.isEmpty()) {
-                        //Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.comunicationArray.peek());
-
-                        //publishProgress(TCPClient.comunicationArray.peek());
-                        TCPClient.comunicationArray.remove();
+                        Log.d("AsyncTask Reception:", "ComunicationArray: " + TCPClient.comunicationArray.peek());
+                        publishProgress(TCPClient.comunicationArray.remove());
                         mTcpClient.comunicationReceived = false;
                     } else if (!TCPClient.meetRArray.isEmpty()) {
-                        Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.meetRArray.peek());
+                        Log.d("AsyncTask Reception:", "meetRArray: " + TCPClient.meetRArray.peek());
                         publishProgress(TCPClient.meetRArray.peek());
                         //TCPClient.meetRArray.remove();  //will be needed to the reply
                         mTcpClient.meetRStatus = false;
-                    }  else if (!TCPClient.meetArray.isEmpty()) {
-                        Log.e("MainActivity", "AsyncTask Reception: " + TCPClient.meetArray.peek());
+                    } else if (!TCPClient.meetArray.isEmpty()) {
+                        Log.d("AsyncTask Reception:", "meetArray: " + TCPClient.meetArray.peek());
                         publishProgress(TCPClient.meetArray.peek());
                         //TCPClient.meetRArray.remove();  //will be needed to the reply
                         mTcpClient.meetStatus = false;
                     } else {
-                        Log.e("backgroundReception", "Mensagem recebida não chegou aqui");
+                        Log.e("AsyncTask Reception:", "Unexpected Message");
                     }
                 }
             }
@@ -1154,17 +1182,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
-            //in the arrayList we add the messaged received from server
-            /*synchronized (lockmessa) {
-                Message = values[0];
-                messageReceived = true;
-            }*/
+
             String[] message = values[0].split("\\$");
-            if(message[0].equals("MeetRequest")){
+
+            //Receiver cellphone:
+            if (message[0].equals("MeetRequest")) {
+
                 DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch (which){
+                        switch (which) {
                             case DialogInterface.BUTTON_POSITIVE:
                                 //Yes button clicked
                                 meetReply("OK");
@@ -1179,61 +1206,63 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 };
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("Meet with "+message[1]+ "in" + message[2] + "?").setPositiveButton("Yes", dialogClickListener)
+                builder.setMessage("Meet with " + message[1] + " in " + message[2] + "?").setPositiveButton("Yes", dialogClickListener)
                         .setNegativeButton("No", dialogClickListener).show();
 
-            } else if(message[0].equals("Meet")){       // Meet$email2$OK/FAIL$LAT$LON
-                if(message[3].equals("FAIL")){
+                //Sending Cellphone:
+            } else if (message[0].equals("Meet")) {       // Meet$email2$OK/FAIL$LAT$LON
+                if (message[3].equals("FAIL")) {
                     Toast.makeText(MainActivity.this, "Meet Rejected", Toast.LENGTH_LONG).show();
-                } else if(message[3].equals("OK")){
-                    Log.e("MainActivity", "Start Meet: "+message[1]+" in "+message[2]);
-                    //TODO: start navigation for that room
+                } else if (message[3].equals("OK")) {
+                    Toast.makeText(MainActivity.this, "Starting Navigation to " + message[2], Toast.LENGTH_LONG).show();
+                    Log.d("MainActivity", "Start Meet: " + message[1] + " in " + message[2]);
+                    navigateToRoom(message[2].toUpperCase());
                 }
 
-
+            } else {
+                Log.e("AsyncTask Reception:", "(OnProgress): Unexpected Message");
             }
-
-            //Log.e("MainActivity", "onProgressUpdate: " + Message);
-            // notify the adapter that the data set has changed. This means that new message received
-            // from server was added to the list
         }
     }
 
+    /**
+     * Async task used to send regular Coordinates information
+     */
     public class backgroundSending extends AsyncTask<String, String, String> {
 
-        private boolean connection = false;
+        private AtomicBoolean connection = new AtomicBoolean(false);
 
         @Override
         protected String doInBackground(String... message) {
-            String coordenadas = "";
+            //TODO: NOT sending Coordinates...
+            String stringCoordinates = "";
             while (mTcpClient == null) ;
-            connection = true;
+            connection.set(true);
 
             while (!logoutPressed) {
 
                 try {
-                    Log.e("ASYNC", "Sending Coordinates$: " + mCurrentLocation);
+                    //Log.e("ASYNC", "Sending Coordinates$: " + mCurrentLocation);
                     if (mCurrentLocation != null) {
                         Double latitude_enviar = mCurrentLocation.getLatitude();
 
                         Double longitude_enviar = mCurrentLocation.getLongitude();
-                        coordenadas = Double.toString(latitude_enviar) + "$" + Double.toString(longitude_enviar);
+                        stringCoordinates = Double.toString(latitude_enviar) + "$" + Double.toString(longitude_enviar);
                     }
 
-                    if (coordenadas != "$" && !coordenadas.equals("")) {
-                        if (!TCPClient.connected && connection) {
+                    if (stringCoordinates != "$" && !stringCoordinates.equals("")) {
+                        if (!TCPClient.connected && connection.compareAndSet(true, false)) {
                             publishProgress("");
-                            connection = false;
                         } else if (TCPClient.connected) {
-                            connection = true;
-                            //mTcpClient.sendMessage("Coordinates$" + mAuth.getCurrentUser().getEmail() + "$" + coordenadas);
-                            Log.e("ASYNC", "Sending Coordinates$: " + coordenadas);
+                            connection.set(true);
+                            //mTcpClient.sendMessage("Coordinates$" + mAuth.getCurrentUser().getEmail() + "$" + stringCoordinates);
+                            //Log.e("ASYNC", "Sending Coordinates$: " + stringCoordinates);
                         } else {
-                            Log.e("ASYNC", "Waiting for connection ");
+                            Log.e("backgroundSending", "Waiting for connection ");
                         }
 
                     } else {
-                        Log.e("MainActivity", "AsyncTask Sending: Wrong Coordinates");
+                        Log.e("backgroundSending", "AsyncTask Sending: Wrong Coordinates");
                     }
                     Thread.sleep(2000);
 
@@ -1252,10 +1281,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onProgressUpdate(values);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                Log.e("backgroundSending", "waitConnection - if");
+                Log.d("backgroundSending", "waitConnection - if");
                 waitConnection = new waitConnection().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
             } else {
-                Log.e("backgroundSending", "waitConnection - if");
+                Log.d("backgroundSending", "waitConnection - else");
                 waitConnection = new waitConnection().execute();
             }
 
@@ -1265,15 +1294,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected void onCancelled() {
             super.onCancelled();
-            connection = false;
+            connection.set(false);
             if (mTcpClient != null) mTcpClient.stopClient();
 
-            Log.e("ASYNC", "CANCELED: ");
+            Log.e("backgroundSending", "CANCELED");
             return;
         }
     }
 
-    public class logout extends AsyncTask<String, String, String> {
+    public class backgroundLogout extends AsyncTask<String, String, String> {
 
 //        private final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
 
@@ -1366,22 +1395,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /*
-     * To call the async task do it like this
-     * String num = "xxxxxxxxx";
-     * meet = new sendMeetRequest().execute(num);
+    /**
+     * Send Meet request to another cellphone
+     * toSend[0] - email
+     * toSend[1] - room to meet
+     * <p>
+     * There is no need to make a message to wait,
+     * Maybe to much information
      */
     public class sendMeetRequest extends AsyncTask<String, String, String> {
 
         @Override
-        protected String doInBackground(String... email) {
+        protected String doInBackground(String... toSend) {
             while (mTcpClient == null) ;
 
-            Log.e("ASYNC", "Sending MeetRequest to: " + email[0] + email[1]);
+            Log.e("ASYNC", "Sending MeetRequest to: " + toSend[0] + toSend[1]);
             mTcpClient.meetStatus = false;
-            mTcpClient.sendMessage("Meet$" + email[0] +"$" + email[1]);
+            mTcpClient.sendMessage("Meet$" + toSend[0] + "$" + toSend[1]);
 
-            //TODO: waiting message for the user (onProgressUpdate)
+            //Message for user is not needed
             //while (!mTcpClient.meetStatus) publishProgress("Waiting");
             return null;
         }
@@ -1430,7 +1462,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
     }
-
 
     public class backgroundSendFriends extends AsyncTask<String, String, String> {
         @Override
