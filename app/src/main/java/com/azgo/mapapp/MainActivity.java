@@ -124,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     //private static boolean messageReceived;
     //private static String Message;
-    private static String[][] FriendsMessage;
     boolean logoutPressed = false;
     private AsyncTask senAsync;
     private AsyncTask recAsync;
@@ -134,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AsyncTask meetTask;
     //static Queue<String> numbersArray = new LinkedList<>();
     static String friends = "Friends";
+    private static boolean friendsready = false;
     public static String sessionID;
 
     static List<FriendsData<String, String, String>> FriendsDataList = new ArrayList<>();
@@ -234,12 +234,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         while (phones.moveToNext()) {
             String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            //String phonemails = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DATA));
             phoneNumber = phoneNumber.replaceAll("\\s+", ""); //tirar espaços;
             phoneNumber = phoneNumber.substring(phoneNumber.length() - 9); //buscar ultimos 9 numeros
             String oldfriends = friends + separator + phoneNumber;
             friends = oldfriends;
         }
-        //Log.e("AsyncFriends", "Sending Friends: " +friends);
+        friendsready = true;
         phones.close();// close cursor
     }
 
@@ -1464,7 +1465,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected String doInBackground(String... message) {
             while (mTcpClient == null) ;
-            while (friends == "Friends") ;
+            while (friendsready == false) ;
 
             if (friends != "Friends") {
                 mTcpClient.sendMessage(friends);
