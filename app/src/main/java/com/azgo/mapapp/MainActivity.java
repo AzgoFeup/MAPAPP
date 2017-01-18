@@ -72,6 +72,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1495,23 +1496,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
 
+                //ToDebug:
+                /*
+                String[] items = new String[6];
+                for (int i = 0; i < 6; i++) {
+                    items[i] = "ola" + i + "#ole" + i + "#oli" + i;
+                    Log.d("FrindsAsinc", items[i]);
+                }
+                */
+
+                int i = 0;
                 for (String item : items) {
-                    int i = 0;
-                    if (i != 0) {
+
+                    if (i != 0) { //ignore first message
                         String[] data = item.split("\\#");
                         FriendsData<String, String, String> trio = new FriendsData<>(data[0], data[1], data[2]);
                         FriendsDataList.add(trio);
-                        menu.add("ASD");
+                        menu.add(data[0]);
                     }
                     i++;
                 }
 
-
-                //Message = FriendsDataList; //required: java.lang.string <-> found: java.util.list
-
-                //messageReceived = true;
-
             }
+
+            //to match a name to a email:
+            //newName - name to meet
+            /*
+            for (FriendsData friendsdata : FriendsDataList) {
+                if (newName == friendsdata.getName())
+                    return friendsdata.getEmail();
+            }
+            */
 
 
             for (FriendsData friendsdata : FriendsDataList) {
