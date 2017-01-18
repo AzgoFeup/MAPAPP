@@ -25,12 +25,4 @@
         android:textColor="@android:color/white"
         />
 
-    <TextView
-    android:textSize="12dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="STATUS"
-    android:textColor="@android:color/white"
-    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-
 </LinearLayout>
