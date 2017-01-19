@@ -12,6 +12,8 @@ public class Graph {
     public int V = 69;
     private boolean[][] adj= new boolean[69][69];
 
+
+
     public class Node{
         private int index;
         private String label;
@@ -35,6 +37,11 @@ public class Graph {
         public double getLongitude(){
             return longitude;
         }
+
+        public void setLongitude(double longi){this.longitude=longi;}
+        public void setLatitude(double lat){this.latitude=lat;}
+        public void setIndex(int in) {this.index = in;}
+        public void setLabel(String label) {this.label = label;}
 
     }
 

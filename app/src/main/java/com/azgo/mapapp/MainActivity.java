@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.widget.ImageView;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.hardware.GeomagneticField;
@@ -22,6 +24,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -39,7 +42,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.RadioGroup;
 import android.widget.Toast;
+import android.widget.ImageView;
 
 import com.azgo.mapapp.fragments.AboutActivity;
 import com.azgo.mapapp.fragments.FavouritesActivity;
@@ -70,13 +75,19 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.maps.android.PolyUtil;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Arrays;
+
+
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, SensorEventListener {
 
@@ -98,16 +109,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean mLocationPermissionGranted;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private int navigation_on = 0;
+    int start_nav = 0;
     float mDeclination;
     SensorManager mSensorManager;
     private Sensor mRotVectorSensor;
     private final float[] mRotationMatrix = new float[16];
     double angle;
 
+    static final float ALPHA = 0.5f; //variável global
+    TextToSpeech ttobj;
+    private EditText write;
+
     //prepare graph
     static Graph grafo = new Graph();
     static List<Graph.Node> nodes = grafo.insertNodes();
     static boolean[][] adj = grafo.fillMatrix();
+    LinkedList<Graph.Node> caminho = new LinkedList<>();
+    List<Graph.Node> caminho_dois = new ArrayList<>(75);
 
     //design
     NavigationView navigationView = null;
@@ -138,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //static Queue<String> numbersArray = new LinkedList<>();
     static String friends = "Friends";
     public static String sessionID ;
+    List<LatLng> points = new ArrayList<>();
+    Instructions.Instruction[] instrucoes = new Instructions.Instruction[999];
 
     static List<FriendsData<String, String, String>> FriendsDataList = new ArrayList<>();
 
@@ -195,6 +215,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //menuRight.add(0,1,0,"ASD0");
 
         navigationViewRight.setNavigationItemSelectedListener(this);
+
+
+        ttobj=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                ttobj.setLanguage(Locale.US);
+                if (status == TextToSpeech.SUCCESS) {
+                    ttobj.speak("Welcome", TextToSpeech.QUEUE_FLUSH, null);
+                }
+            }
+        });
 
         //Communication Stuff
 
@@ -355,11 +386,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return infoWindow;
             }
         });
-        /*
-         * Set the map's camera position to the current location of the device.
-         * If the previous state was saved, set the position to the saved state.
-         * If the current location is unknown, use a default position and zoom value.
-         */
+    /*
+     * Set the map's camera position to the current location of the device.
+     * If the previous state was saved, set the position to the saved state.
+     * If the current location is unknown, use a default position and zoom value.
+     */
         if (mCameraPosition != null) {
             mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mCurrentLocation != null) {
@@ -372,8 +403,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         final Button testButton = (Button) findViewById(R.id.startActivityButton);
+        final RadioGroup radio = (RadioGroup) findViewById(R.id.radio_group_list_selector);
         testButton.setTag(1);
-        testButton.setBackgroundResource(R.drawable.navigate);
+        //\testButton.setText("Navigate Here");
         testButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -383,23 +415,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     testButton.setBackgroundResource(R.drawable.cancelnavigation);
                     navigation_on = 1;
                     v.setTag(0);
+                    radio.setVisibility(View.VISIBLE);
                 } else {
                     testButton.setBackgroundResource(R.drawable.navigate);
                     stopNavigation(mCurrentLocation);
                     v.setTag(1);
                     navigation_on = 0;
+                    radio.setVisibility(View.INVISIBLE);
+
                 }
             }
         });
-        //está repetido do código acima...
-        /*if (mCameraPosition != null) {
-            mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
-        } else if (mCurrentLocation != null) {
-            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(mCurrentLocation.getLatitude(),
-                            mCurrentLocation.getLongitude()), (float)19.08));
-        } else {
-        }*/
+
     }
 
 
@@ -419,8 +446,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void createLocationRequest() {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000);
-        mLocationRequest.setFastestInterval(500);
+        mLocationRequest.setInterval(2000);
+        mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
@@ -521,7 +548,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //calculate closest Node to mLastLocation
         //mGoogleMap.UiSettings.setMapToolbarEnabled(false);
-        LinkedList<Graph.Node> caminho = new LinkedList<>();
         List<Graph.Node> nos = grafo.getListNodes();
         Graph.Node closestNode;
         closestNode = findClosestNode(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(), nos);
@@ -534,7 +560,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //shortest path is on caminho
         //draw path on Google Maps
         // Instantiates a new Polyline object and adds points to define the navigation path
-
+        PolylineOptions linePath = new PolylineOptions();
         linePath.add(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
         /*listIter = myList.listIterator(myList.size());
         while (listIter.hasPrevious()) {
@@ -553,6 +579,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Get back the mutable Polyline
         mPolyLine = mGoogleMap.addPolyline(linePath);
+
+
 
     }
 
@@ -718,28 +746,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onConnected(Bundle bundle) {
         getDeviceLocation();
         mSensorManager.registerListener(this, mRotVectorSensor, SensorManager.SENSOR_STATUS_ACCURACY_LOW);
-        /*if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED){
-            location_nav = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        }
-        if (location_nav == null) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
-        else {
-            handleNewLocation(location_nav);
-        };*/
-        //mLocationRequest = new LocationRequest();
-        //mLocationRequest.setInterval(1000);
-        //mLocationRequest.setFastestInterval(1000);
-        //mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        /*if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }*/
-        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-        //mGoogleApiClient);
+
+        // mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM);
+        // mSensorManager.registerListener(this, mGeomagnetic, SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM);
 
         mapFrag = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -775,30 +784,162 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onLocationChanged(Location location) {
-        //handleNewLocation(location);
-        /*locManager = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
-        locManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER, 1000, 1, locListener);
-        mobileLocation = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);*/
+        TextView distance_view = (TextView) findViewById(R.id.distance);
+        TextView text_view = (TextView)findViewById(R.id.instruction);
+        ImageView imagem_view = (ImageView) findViewById(R.id.arrow_image);
 
-        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        /*mLastLocation = location;
-        if (mCurrentLocationMarker != null) {
-            mCurrentLocationMarker.remove();
+        //test if navigation mode is on
+        if (navigation_on == 1) {
+
+            if (start_nav == 0) {//first time since navigation started
+
+                int y = 0;
+                //Log.e("valor de y ", " "+y);
+                for(Graph.Node nos_t: caminho){
+                    caminho_dois.add(y, nos_t);
+                    //Log.e("INDICE CAMINHO: "+y, " "+nos_t.getIndex());
+                    y++;
+                }
+                text_view.setText("Welcome to AZGO");
+                imagem_view.setImageResource(R.drawable.forward);
+                //add all nodes of navigation path to variable points
+                if (!caminho.isEmpty()) {
+                    points.add(new LatLng(location.getLatitude(), location.getLongitude()));
+                    for (Graph.Node no : caminho) {
+                        points.add(new LatLng(no.getLatitude(), no.getLongitude()));
+                    }
+                }
+                //Graph nod = new Graph().Node(-1,"null",0,0);
+                //Instructions.Instruction auxiliar = new Instructions().new Instruction("nada",caminho.getFirst());
+
+                instrucoes = Instructions.calculateInstructions(caminho);
+                start_nav = 1;
+            }
+            if (start_nav == 1) {//instructions are loaded, path is done
+                int i=0;
+                if (instrucoes== null) {
+                    Log.e("ESTA VAZIA.....", "cenas");
+                }else{
+                    for (i=0; i<instrucoes.length; i++){
+                        if(instrucoes[i]==null) break;
+                        Log.e("INSTRUCAO nº"+i,instrucoes[i].text);
+                    }
+                }
+                LatLng testPoint = new LatLng(location.getLatitude(), location.getLongitude());
+                LatLng nearestPoint = findNearestPoint(testPoint, points);
+                mCurrentLocation.setLatitude(nearestPoint.latitude);
+                mCurrentLocation.setLongitude(nearestPoint.longitude);
+                Graph.Node atual_cenas;
+
+                //Log.e("TAMANHO : ", " "+caminho_dois.size());
+                /*for(Graph.Node no: caminho_dois){
+                    Log.e("CAMINHO DOIS", "no "+no.getIndex());
+                }*/
+                //atual constains the closest node to the graph of the current location
+                atual_cenas = findClosestNodeNOW(nearestPoint.latitude, nearestPoint.longitude, caminho_dois);
+                //Log.e("ATUAL_CENAS", " "+atual_cenas.getIndex());
+                //calcular a distância até ao destino
+                //results[0] contains the computed distance
+                float[] results = new float[5];
+                Location localizacao_atual = new Location("localizacao atual");
+                localizacao_atual.setLatitude(mCurrentLocation.getLatitude());
+                localizacao_atual.setLongitude(mCurrentLocation.getLongitude());
+                localizacao_atual.distanceBetween(localizacao_atual.getLatitude(), localizacao_atual.getLongitude(), atual_cenas.getLatitude(), atual_cenas.getLongitude(), results);
+                //redundante....
+                float distancia = 0;
+                distancia = results[0];
+                int start = 0;
+                Graph.Node now = null;
+                Graph.Node next = null;
+                for(Graph.Node no:caminho){
+                    if(start == 0){
+                        if((no.getLatitude() == atual_cenas.getLatitude())&&(no.getLongitude() == atual_cenas.getLongitude())){
+                            start = 1;
+                            //now.setIndex(atual_cenas.getIndex());
+                            now = atual_cenas;
+                        }
+                    } else {
+                        //next.setIndex(atual_cenas.getIndex());
+                        next = no;
+                        localizacao_atual.setLatitude(now.getLatitude());
+                        localizacao_atual.setLongitude(now.getLongitude());
+                        localizacao_atual.distanceBetween(localizacao_atual.getLatitude(), localizacao_atual.getLongitude(), next.getLatitude(), next.getLongitude(), results);
+                        distancia+=results[0];
+                        //now.setIndex(no.getIndex());
+                        now = no;
+                    }
+                }
+
+
+                if (instrucoes == null) {
+                    Log.e("ESTA VAZIA.....", "cenas");
+                } else{
+                    for(i=0; i<instrucoes.length; i++){
+                        if(instrucoes[i] == null || instrucoes[i].node == null)break;
+                       /* Log.e("Instrucoes[i].text ", " "+instrucoes[i].text);
+                        Log.e("Instrucoes[i].latitude ", " "+instrucoes[i].node.getLatitude());
+                        Log.e("Instrucoes[i].longitude", " "+instrucoes[i].node.getLongitude());
+                        Log.e("Atual_cenas.latitude ", " "+atual_cenas.getLatitude());
+                        Log.e("Atual_cenas.longitude", " "+atual_cenas.getLongitude());*/
+
+                        if((instrucoes[i].node.getLatitude() == atual_cenas.getLatitude())&&(instrucoes[i].node.getLongitude() == atual_cenas.getLongitude())){
+
+                            //TextView text = (TextView)findViewById(R.id.instruction);
+                            final String texto_ler = instrucoes[i].text;
+                            text_view.setText(instrucoes[i].text);
+                            if(i>0) {
+                                if ((instrucoes[i].text != instrucoes[i - 1].text) && i != 0)
+                                    ttobj.speak(texto_ler, TextToSpeech.QUEUE_FLUSH, null);
+                                //ImageView imagem = (ImageView) findViewById(R.id.arrow_image);
+                            }
+                            if(instrucoes[i].text.equals("Go out of the room through the corridor")){
+                                imagem_view.setImageResource(R.drawable.forward);
+                            }else if(instrucoes[i].text.equals("Get in the room")){
+                                imagem_view.setImageResource(R.drawable.forward);
+                            } else if (instrucoes[i].text.equals("Follow the exit")) {
+                                imagem_view.setImageResource(R.drawable.forward);
+                            } else if(instrucoes[i].text.equals("Get in the building")){
+                                imagem_view.setImageResource(R.drawable.forward);
+                            } else if(instrucoes[i].text.equals("Follow the corridor")){
+                                imagem_view.setImageResource(R.drawable.forward);
+                            } else if(instrucoes[i].text.equals("Go forward")){
+                                imagem_view.setImageResource(R.drawable.forward);
+                            } else if(instrucoes[i].text.equals("Turn right")){
+                                imagem_view.setImageResource(R.drawable.right);
+                            } else if(instrucoes[i].text.equals("Turn left")){
+                                imagem_view.setImageResource(R.drawable.left);
+                            } else if(instrucoes[i].text.equals("Go back")){
+                                imagem_view.setImageResource(R.drawable.back);
+                            } else if(instrucoes[i].text.equals("You have arrived to your destination")){
+                                imagem_view.setImageResource(R.drawable.forward);
+
+                            }
+                        }
+
+                    }
+                }
+                int nova_distancia = (int)Math.round(distancia);
+                float tempo;
+                tempo = nova_distancia/((float)(1.4));
+                int novo_tempo = (int)Math.round(tempo);
+
+                distance_view.setText("Distance: "+nova_distancia+"m   ETA: "+novo_tempo+"s");
+                atual_cenas = null;
+            }
+
+        } else {
+            if (start_nav == 1) {
+                start_nav = 0;
+                points.clear();
+                caminho.clear();
+                //clear the array of instructions for future navigation
+                Arrays.fill(instrucoes, null);
+                distance_view.setText(" ");
+            }
+            mCurrentLocation = location;
         }
-        String name = "I am here";
-        //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        setMarker(name, mLastLocation.getLatitude(), mLastLocation.getLongitude());
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, (float) 19.08);
-        //move map camera
-        mGoogleMap.moveCamera(cameraUpdate);
-        //stop location updates
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }*/
-        mCurrentLocation = location;
-        updateMarkers();
+
+        //updateMarkers();
         GeomagneticField field = new GeomagneticField(
                 (float) mCurrentLocation.getLatitude(),
                 (float) mCurrentLocation.getLongitude(),
@@ -813,7 +954,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             marker.remove();
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)
-                    .bearing(mCurrentLocation.getBearing())// Sets the center of the map to Mountain View
+                    //.bearing(mCurrentLocation.getBearing())// Sets the center of the map to Mountain View
                     .zoom(21)                   // Sets the zoom
                     .tilt(60)                   // Sets the tilt of the camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
@@ -823,7 +964,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             marker.remove();
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)
-                    .bearing(mCurrentLocation.getBearing())// Sets the center of the map to Mountain View
+                    //.bearing(mCurrentLocation.getBearing())// Sets the center of the map to Mountain View
                     .zoom((float) 19.08)                   // Sets the zoom
                     .tilt(0)                   // Sets the tilt of the camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
@@ -831,9 +972,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             setMarker("local", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         }
     }
-
-
-    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
     public boolean checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this,
@@ -868,6 +1006,52 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+
+    private Graph.Node findClosestNodeNOW(double latitude, double longitude, List<Graph.Node> caminho_dois) {
+        Graph.Node closestNode = new Graph().new Node(5, "mais perto", 0, 0);
+        //double[][] points = new double[caminho_dois.size()][2];
+        double shortestDistance = 200;
+        double distance = 0;
+        //enter x,y coords into the 69x2 table points[][]
+        /*for (Graph.Node no : caminho_dois) {
+            points[i][0] = no.getLatitude();
+            points[i][1] = no.getLongitude();
+            i++;
+        }*/
+
+        //get the distance between the point in the ith row and the (m+1)th row
+        //and check if it's shorter than the distance between 0th and 1st
+
+        for (Graph.Node no : caminho_dois) {
+            //use m=i rather than 0 to avoid duplicate computations
+            // for (int m = i; m < caminho_dois.size() - 1; m++) {
+            double dx = no.getLatitude() - latitude;
+            double dy = no.getLongitude() - longitude;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            //set shortestDistance and closestPoints to the first iteration
+                /*if (m == 0 && i == 0) {
+                    shortestDistance = distance;
+                    closestNode = no;
+                }*/
+            //then check if any further iterations have shorter distances
+            if (distance < shortestDistance) {
+                shortestDistance = distance;
+                closestNode.setIndex(no.getIndex());
+                closestNode.setLabel("mais proximo");
+                closestNode.setLatitude(no.getLatitude());
+                closestNode.setLongitude(no.getLongitude());
+            }
+
+
+        }
+        //search the closest Node on shortest path
+
+        return closestNode;
+    }
+
+
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -927,11 +1111,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mLocationPermissionGranted) {
-            mGoogleMap.setMyLocationEnabled(true);
-            mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+            mGoogleMap.setMyLocationEnabled(false);
+            mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mGoogleMap.getUiSettings().setCompassEnabled(false);
+            mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
         } else {
             mGoogleMap.setMyLocationEnabled(false);
             mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mGoogleMap.getUiSettings().setCompassEnabled(false);
+            mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
             mCurrentLocation = null;
         }
     }
@@ -963,9 +1151,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startActivity(intent);
     }
 
+
+
+
     @Override
     public void onSensorChanged(SensorEvent event) {
+
+       /* if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+            //instance variable that holds the last set of smoothed values
+            accelVals = lowPass(event.values.clone(), accelVals);
+        if(event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+            //instance variable that holds the last set of smoothed values
+            compassVals = lowPass(event.values.clone(), compassVals);*/
         if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+            //rotationVals = lowPass(event.values.clone(), event.values);
             SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values);
             float[] orientation = new float[3];
             SensorManager.getOrientation(mRotationMatrix, orientation);
@@ -975,6 +1174,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             angle = Math.toDegrees(orientation[0]);
         }
+        //event.values is an array of sensor values for different axes
+      /*  if(accelVals != null && compassVals != null){
+            float R[] = new float[9];
+            float I[] = new float[9];
+            boolean success = SensorManager.getRotationMatrix(R,I,accelVals,compassVals);
+            if(success){
+                float orientation[] = new float[3];
+                SensorManager.getOrientation(R,orientation);
+                //at this point orientation contains azimuth, pitch and roll values
+                if(Math.abs(Math.toDegrees(orientation[0] - angle))>0.8){
+                    float bearing = (float)Math.toDegrees(orientation[0]) + mDeclination;
+                    if(mGoogleMap != null)
+                        updateCamera(bearing);
+                }
+                angle = Math.toDegrees(orientation[0]);
+            }
+        }*/
     }
 
     @Override
@@ -1589,6 +1805,52 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return null;
     }
+
+
+    //if on navigation mode
+    private LatLng findNearestPoint(LatLng test, List<LatLng> target) {
+        double distance = -1;
+        LatLng minimumDistancePoint = test;
+        if (test == null || target == null) {
+            return minimumDistancePoint;
+        }
+        for (int i = 0; i < target.size(); i++) {
+            LatLng point = target.get(i);
+            int segmentPoint = i + 1;
+            if (segmentPoint >= target.size()) {
+                segmentPoint = 0;
+            }
+            double currentDistance = PolyUtil.distanceToLine(test, point, target.get(segmentPoint));
+            if (distance == -1 || currentDistance < distance) {
+                distance = currentDistance;
+                minimumDistancePoint = findNearestPoint(test, point, target.get(segmentPoint));
+            }
+        }
+        return minimumDistancePoint;
+    }
+
+
+    private LatLng findNearestPoint(final LatLng p, final LatLng start, final LatLng end) {
+        if (start.equals(end)) {
+            return start;
+        }
+        final double s0lat = Math.toRadians(p.latitude);
+        final double s0lng = Math.toRadians(p.longitude);
+        final double s1lat = Math.toRadians(start.latitude);
+        final double s1lng = Math.toRadians(start.longitude);
+        final double s2lat = Math.toRadians(end.latitude);
+        final double s2lng = Math.toRadians(end.longitude);
+        double s2s1lat = s2lat - s1lat;
+        double s2s1lng = s2lng - s1lng;
+        final double u = (((s0lat - s1lat) * s2s1lat + (s0lng - s1lng) * s2s1lng) / (s2s1lat * s2s1lat + s2s1lng * s2s1lng));
+        if (u <= 0) {
+            return start;
+        }
+        if (u >= 1) {
+            return end;
+        }
+        return new LatLng(start.latitude + (u * (end.latitude - start.latitude)), start.longitude + (u * (end.longitude - start.longitude)));
+    } //the solution will give a point on a segment of a Polygon that is the closest point to the test point
 
 
 
