@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "964670228893-66e8cf9omi8ban2s6brkinbbqf6c4jtj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azgo.mapapp",
+            "certificate_hash": "84A4663570B340A846E9E126B668AADB27462FDE"
+          }
+        },
+        {
+          "client_id": "964670228893-acuisntftkjs05sm5ddjkecpteeoo66k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azgo.mapapp",
+            "certificate_hash": "7F4D2F5882683BB8183DA073D8AE9DC361A3E16B"
+          }
+        },
+        {
           "client_id": "964670228893-6gln5iustujts12k04q0secsmkb2l1or.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
