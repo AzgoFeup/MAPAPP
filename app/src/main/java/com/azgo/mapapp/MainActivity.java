@@ -273,12 +273,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         while (phones.moveToNext()) {
             String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            //String phonemails = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DATA));
             phoneNumber = phoneNumber.replaceAll("\\s+", ""); //tirar espaços;
             phoneNumber = phoneNumber.substring(phoneNumber.length() - 9); //buscar ultimos 9 numeros
             String oldfriends = friends + separator + phoneNumber;
             friends = oldfriends;
         }
-        //Log.e("AsyncFriends", "Sending Friends: " +friends);
+        friendsready = true;
         phones.close();// close cursor
     }
 
@@ -1327,7 +1328,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             }
         }
-        if (searchNode == null)
+        if (searchNode != null)
             //TODO: something
             startNavigationTo(searchNode, mCurrentLocation);
     }
@@ -1358,8 +1359,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    /*
-     * replyStatus should be OK or FAIL
     /**
      * Method that receives a the reply of a meet request and creats a asyncTask to send the
      * and starts the navigation
@@ -1720,7 +1719,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected String doInBackground(String... message) {
             while (mTcpClient == null) ;
-            while (friends == "Friends") ;
+            while (friendsready == false) ;
 
             if (friends != "Friends") {
                 mTcpClient.sendMessage(friends);
@@ -1750,17 +1749,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             synchronized (lockfriends) {
 
 
-                //String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
+                String[] items = values[0].split("\\$"); //values[0] está a mensagem toda do server
 
                 //ToDebug:
 
-
+                /*
                 String[] items = new String[6];
                 for (int i = 0; i < 6; i++) {
                     items[i] = "ola" + i + "#ole" + i + "#oli" + i;
                     Log.d("FrindsAsinc", items[i]);
                 }
-
+                */
 
                 int i = 0;
                 for (String item : items) {
@@ -1774,7 +1773,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     i++;
                 }
 
+
+                //Message = FriendsDataList; //required: java.lang.string <-> found: java.util.list
+
+                //messageReceived = true;
+
             }
+
 
             //to match a name to a email:
             //newName - name to meet
