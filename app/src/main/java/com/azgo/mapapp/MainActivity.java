@@ -134,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Toolbar toolbar = null;
     DrawerLayout drawer = null;
     ActionBarDrawerToggle toggle = null;
+    Button testButton = null;
 
     String roomMeet,emailMeet;
 
@@ -403,6 +404,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
 
+        testButton = (Button) findViewById(R.id.startActivityButton);
         final Button testButton = (Button) findViewById(R.id.startActivityButton);
         final RadioGroup radio = (RadioGroup) findViewById(R.id.radio_group_list_selector);
         testButton.setTag(1);
@@ -524,7 +526,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         Graph.Node searchNode = null;
         for (Graph.Node no : nodes) {
-            if (no.getLabel().equals(location)) {
+            if (no.getLabel().equals(location.toUpperCase())) {
                 searchNode = no;
                 break;
             }
@@ -1314,6 +1316,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
+    public void navigationMeet(String room) {
+        location = room;
+        PolylineOptions linePath = new PolylineOptions();
+        //mLastLocation = location;
+        //Get map on navigation mode
+        LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        // Construct a CameraPosition focusing on current position and animate the camera to that position.
+        //change camera view on current user's location to start navigation
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(latLng)      // Sets the center of the map to Mountain View
+                .zoom(21)                   // Sets the zoom
+                .tilt(60)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+        Graph.Node searchNode = null;
+        for (Graph.Node no : nodes) {
+            if (no.getLabel().equals(location.toUpperCase())) {
+                searchNode = no;
+                break;
+            }
+        }
+        startNavigationTo(searchNode, mCurrentLocation);
+
+
+        //Intent i = new Intent(this, Navigation.class);
+        //i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        //i.putExtra("location", locationMessage);
+        //send String to navigate to room number
+       /* if(location!=null && !location.isEmpty()){
+            Toast.makeText(this, "Starting navigation to "+location, Toast.LENGTH_LONG).show();
+        }*/
+        //startActivity(i);
+        //finish();
+        //location.equals(null);
+
+    }
+
     /**
      * Api time method to help communication
      *
@@ -1321,6 +1361,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     public void navigateToRoom(String room) {
 
+
+        final int status = (Integer) testButton.getTag();
+        if (status == 1) {
+            navigationMeet(room);
+            testButton.setBackgroundResource(R.drawable.cancelnavigation);
+            navigation_on = 1;
+            testButton.setTag(0);
+        } else {
+            testButton.setBackgroundResource(R.drawable.navigate);
+            stopNavigation(mCurrentLocation);
+            testButton.setTag(1);
+            navigation_on = 0;
+        }
+
+        /*
         Graph.Node searchNode = null;
         for (Graph.Node no : nodes) {
             if (no.getLabel().equals(room)) {
@@ -1331,6 +1386,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (searchNode != null)
             //TODO: something
             startNavigationTo(searchNode, mCurrentLocation);
+        */
     }
 
     //Communication
