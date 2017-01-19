@@ -1,33 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/login">
+
     <Button
         android:text="@string/debug"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/button_facebook_login"
-        android:layout_marginBottom="16dp"
         android:id="@+id/buttonDebug"
+        android:onClick="onClick"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/login_logo"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="195dp"
+        android:id="@+id/imageView3"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="37dp"
+        android:layout_marginBottom="181dp"
+        android:layout_above="@+id/buttonDebug"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="43dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="60dp"
+        android:id="@+id/button_facebook_login"
+        android:src="@drawable/login_facebook"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:layout_marginBottom="105dp"
+        android:layout_marginTop="172dp"
+        android:background="@drawable/login_facebook"
+        android:layout_above="@+id/buttonDebug"
+        android:layout_alignEnd="@+id/imageView3"
+        android:layout_alignTop="@+id/imageView3"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="41dp"
         android:onClick="onClick" />
 
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/gmail_sign_in_button"
-        android:onClick="onClick"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/buttonDebug"
-        android:layout_centerHorizontal="true" />
-
     <com.facebook.login.widget.LoginButton
-        android:id="@+id/button_facebook_login"
+        android:id="@+id/login_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:visibility="gone" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="60dp"
+        android:id="@+id/gmail_sign_in_button"
+        android:src="@drawable/login_facebook"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:layout_marginBottom="46dp"
+        android:layout_marginTop="59dp"
+        android:background="@drawable/login_gmail"
+        android:layout_above="@+id/buttonDebug"
+        android:layout_alignEnd="@+id/button_facebook_login"
+        android:layout_alignTop="@+id/button_facebook_login"
+        android:layout_alignStart="@+id/button_facebook_login"
+         />
 
 </RelativeLayout>

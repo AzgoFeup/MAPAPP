@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/map"
+            android:icon="@drawable/mainpage_iconmap"
+            android:title="MAP" />
+
+        <item
+            android:id="@+id/history"
+            android:icon="@drawable/mainpage_iconhistory"
+            android:title="HISTORY" />
+        <item
+            android:id="@+id/favourites"
+            android:icon="@drawable/mainpage_iconfavorites"
+            android:title="FAVOURITES" />
+        <item
+            android:id="@+id/settings"
+            android:icon="@drawable/mainpage_iconsettings"
+            android:title="SETTINGS" />
+        <item
+            android:id="@+id/about"
+            android:icon="@drawable/mainpage_iconabout"
+            android:title="ABOUT" />
+        <item
+            android:id="@+id/logout"
+            android:icon="@drawable/mainpage_iconlogout"
+            android:title="LOGOUT" />
+    </group>
+
+</menu>
