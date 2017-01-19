@@ -21,11 +21,6 @@
         android:paddingTop="@dimen/activity_vertical_margin"
         tools:context=".MainActivity">
 
-        <include
-            layout="@layout/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
 
         <EditText
             android:layout_width="match_parent"
@@ -115,6 +110,11 @@
         <!--android:text="@string/nav"-->
 
     </RelativeLayout>
+
+    <include
+        layout="@layout/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <android.support.design.widget.NavigationView
         android:id="@+id/nvView"

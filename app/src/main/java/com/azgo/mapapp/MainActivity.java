@@ -88,7 +88,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.Arrays;
 
 
-
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, SensorEventListener {
 
     PolylineOptions linePath = new PolylineOptions();
@@ -135,8 +134,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     DrawerLayout drawer = null;
     ActionBarDrawerToggle toggle = null;
     Button testButton = null;
+    RadioGroup radio = null;
 
-    String roomMeet,emailMeet;
+    String roomMeet, emailMeet;
 
 
     //Communicação
@@ -156,9 +156,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AsyncTask meetTask;
     //static Queue<String> numbersArray = new LinkedList<>();
     static String friends = "Friends";
-    public static String sessionID ;
+    public static String sessionID;
     List<LatLng> points = new ArrayList<>();
     Instructions.Instruction[] instrucoes = new Instructions.Instruction[999];
+    boolean friendsready = false;
 
     static List<FriendsData<String, String, String>> FriendsDataList = new ArrayList<>();
 
@@ -181,8 +182,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mRotVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-
-
 
 
         // Create the LocationRequest object
@@ -218,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationViewRight.setNavigationItemSelectedListener(this);
 
 
-        ttobj=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        ttobj = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 ttobj.setLanguage(Locale.US);
@@ -232,6 +231,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mAuth = FirebaseAuth.getInstance();
 
+        View infoWindow = getLayoutInflater().inflate(R.layout.nav_header, null);
+
+        final TextView username = (TextView) infoWindow.findViewById(R.id.username);
+
+
+        if (mAuth.getCurrentUser().getDisplayName() != null) {
+            Log.e("sim", mAuth.getCurrentUser().getDisplayName());
+            username.setText(mAuth.getCurrentUser().getDisplayName().toUpperCase());
+        } else {
+            Log.e("nao", mAuth.getCurrentUser().getDisplayName());
+            username.setText(R.string.noName);
+        }
         sessionID = getIntent().getStringExtra("sessionId");
 
         Log.d("onCreate: ", "SeccionID is:" + sessionID);
@@ -403,10 +414,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         }
 
-
+        radio = (RadioGroup) findViewById(R.id.radio_group_list_selector);
         testButton = (Button) findViewById(R.id.startActivityButton);
-        final Button testButton = (Button) findViewById(R.id.startActivityButton);
-        final RadioGroup radio = (RadioGroup) findViewById(R.id.radio_group_list_selector);
+
         testButton.setTag(1);
         //\testButton.setText("Navigate Here");
         testButton.setOnClickListener(new View.OnClickListener() {
@@ -582,7 +592,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Get back the mutable Polyline
         mPolyLine = mGoogleMap.addPolyline(linePath);
-
 
 
     }
@@ -788,7 +797,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onLocationChanged(Location location) {
         TextView distance_view = (TextView) findViewById(R.id.distance);
-        TextView text_view = (TextView)findViewById(R.id.instruction);
+        TextView text_view = (TextView) findViewById(R.id.instruction);
         ImageView imagem_view = (ImageView) findViewById(R.id.arrow_image);
 
         //test if navigation mode is on
@@ -798,7 +807,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 int y = 0;
                 //Log.e("valor de y ", " "+y);
-                for(Graph.Node nos_t: caminho){
+                for (Graph.Node nos_t : caminho) {
                     caminho_dois.add(y, nos_t);
                     //Log.e("INDICE CAMINHO: "+y, " "+nos_t.getIndex());
                     y++;
@@ -819,13 +828,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 start_nav = 1;
             }
             if (start_nav == 1) {//instructions are loaded, path is done
-                int i=0;
-                if (instrucoes== null) {
+                int i = 0;
+                if (instrucoes == null) {
                     Log.e("ESTA VAZIA.....", "cenas");
-                }else{
-                    for (i=0; i<instrucoes.length; i++){
-                        if(instrucoes[i]==null) break;
-                        Log.e("INSTRUCAO nº"+i,instrucoes[i].text);
+                } else {
+                    for (i = 0; i < instrucoes.length; i++) {
+                        if (instrucoes[i] == null) break;
+                        Log.e("INSTRUCAO nº" + i, instrucoes[i].text);
                     }
                 }
                 LatLng testPoint = new LatLng(location.getLatitude(), location.getLongitude());
@@ -854,9 +863,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 int start = 0;
                 Graph.Node now = null;
                 Graph.Node next = null;
-                for(Graph.Node no:caminho){
-                    if(start == 0){
-                        if((no.getLatitude() == atual_cenas.getLatitude())&&(no.getLongitude() == atual_cenas.getLongitude())){
+                for (Graph.Node no : caminho) {
+                    if (start == 0) {
+                        if ((no.getLatitude() == atual_cenas.getLatitude()) && (no.getLongitude() == atual_cenas.getLongitude())) {
                             start = 1;
                             //now.setIndex(atual_cenas.getIndex());
                             now = atual_cenas;
@@ -867,7 +876,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         localizacao_atual.setLatitude(now.getLatitude());
                         localizacao_atual.setLongitude(now.getLongitude());
                         localizacao_atual.distanceBetween(localizacao_atual.getLatitude(), localizacao_atual.getLongitude(), next.getLatitude(), next.getLongitude(), results);
-                        distancia+=results[0];
+                        distancia += results[0];
                         //now.setIndex(no.getIndex());
                         now = no;
                     }
@@ -876,44 +885,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 if (instrucoes == null) {
                     Log.e("ESTA VAZIA.....", "cenas");
-                } else{
-                    for(i=0; i<instrucoes.length; i++){
-                        if(instrucoes[i] == null || instrucoes[i].node == null)break;
+                } else {
+                    for (i = 0; i < instrucoes.length; i++) {
+                        if (instrucoes[i] == null || instrucoes[i].node == null) break;
                        /* Log.e("Instrucoes[i].text ", " "+instrucoes[i].text);
                         Log.e("Instrucoes[i].latitude ", " "+instrucoes[i].node.getLatitude());
                         Log.e("Instrucoes[i].longitude", " "+instrucoes[i].node.getLongitude());
                         Log.e("Atual_cenas.latitude ", " "+atual_cenas.getLatitude());
                         Log.e("Atual_cenas.longitude", " "+atual_cenas.getLongitude());*/
 
-                        if((instrucoes[i].node.getLatitude() == atual_cenas.getLatitude())&&(instrucoes[i].node.getLongitude() == atual_cenas.getLongitude())){
+                        if ((instrucoes[i].node.getLatitude() == atual_cenas.getLatitude()) && (instrucoes[i].node.getLongitude() == atual_cenas.getLongitude())) {
 
                             //TextView text = (TextView)findViewById(R.id.instruction);
                             final String texto_ler = instrucoes[i].text;
                             text_view.setText(instrucoes[i].text);
-                            if(i>0) {
+                            if (i > 0) {
                                 if ((instrucoes[i].text != instrucoes[i - 1].text) && i != 0)
                                     ttobj.speak(texto_ler, TextToSpeech.QUEUE_FLUSH, null);
                                 //ImageView imagem = (ImageView) findViewById(R.id.arrow_image);
                             }
-                            if(instrucoes[i].text.equals("Go out of the room through the corridor")){
+                            if (instrucoes[i].text.equals("Go out of the room through the corridor")) {
                                 imagem_view.setImageResource(R.drawable.forward);
-                            }else if(instrucoes[i].text.equals("Get in the room")){
+                            } else if (instrucoes[i].text.equals("Get in the room")) {
                                 imagem_view.setImageResource(R.drawable.forward);
                             } else if (instrucoes[i].text.equals("Follow the exit")) {
                                 imagem_view.setImageResource(R.drawable.forward);
-                            } else if(instrucoes[i].text.equals("Get in the building")){
+                            } else if (instrucoes[i].text.equals("Get in the building")) {
                                 imagem_view.setImageResource(R.drawable.forward);
-                            } else if(instrucoes[i].text.equals("Follow the corridor")){
+                            } else if (instrucoes[i].text.equals("Follow the corridor")) {
                                 imagem_view.setImageResource(R.drawable.forward);
-                            } else if(instrucoes[i].text.equals("Go forward")){
+                            } else if (instrucoes[i].text.equals("Go forward")) {
                                 imagem_view.setImageResource(R.drawable.forward);
-                            } else if(instrucoes[i].text.equals("Turn right")){
+                            } else if (instrucoes[i].text.equals("Turn right")) {
                                 imagem_view.setImageResource(R.drawable.right);
-                            } else if(instrucoes[i].text.equals("Turn left")){
+                            } else if (instrucoes[i].text.equals("Turn left")) {
                                 imagem_view.setImageResource(R.drawable.left);
-                            } else if(instrucoes[i].text.equals("Go back")){
+                            } else if (instrucoes[i].text.equals("Go back")) {
                                 imagem_view.setImageResource(R.drawable.back);
-                            } else if(instrucoes[i].text.equals("You have arrived to your destination")){
+                            } else if (instrucoes[i].text.equals("You have arrived to your destination")) {
                                 imagem_view.setImageResource(R.drawable.forward);
 
                             }
@@ -921,12 +930,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     }
                 }
-                int nova_distancia = (int)Math.round(distancia);
+                int nova_distancia = (int) Math.round(distancia);
                 float tempo;
-                tempo = nova_distancia/((float)(1.4));
-                int novo_tempo = (int)Math.round(tempo);
+                tempo = nova_distancia / ((float) (1.4));
+                int novo_tempo = (int) Math.round(tempo);
 
-                distance_view.setText("Distance: "+nova_distancia+"m   ETA: "+novo_tempo+"s");
+                distance_view.setText("Distance: " + nova_distancia + "m   ETA: " + novo_tempo + "s");
                 atual_cenas = null;
             }
 
@@ -1155,8 +1164,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
-
     @Override
     public void onSensorChanged(SensorEvent event) {
 
@@ -1282,8 +1289,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(intent);
         }
 
-        int i=0;
+        int i = 0;
+
         for (FriendsData friendsdata : FriendsDataList) {
+            Log.e("DEBUG", "IM HERE");
             i++;
             if (id == i) {
                 emailMeet = getEmailByName(friendsdata.getName().toString());
@@ -1293,16 +1302,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 b.setTitle("Room to meet:");
                 final EditText input = new EditText(this);
                 b.setView(input);
-                b.setPositiveButton("OK", new DialogInterface.OnClickListener()
-                {
+                b.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int whichButton)
-                    {
+                    public void onClick(DialogInterface dialog, int whichButton) {
                         roomMeet = input.getText().toString();
 
                         Log.e("ROOM: ", roomMeet);
                         Log.e("EMAIL: ", emailMeet);
-                        meetSend(emailMeet,roomMeet);
+                        meetSend(emailMeet, roomMeet);
                     }
                 });
                 b.create().show();
@@ -1368,11 +1375,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             testButton.setBackgroundResource(R.drawable.cancelnavigation);
             navigation_on = 1;
             testButton.setTag(0);
+            radio.setVisibility(View.VISIBLE);
         } else {
             testButton.setBackgroundResource(R.drawable.navigate);
             stopNavigation(mCurrentLocation);
             testButton.setTag(1);
             navigation_on = 0;
+            radio.setVisibility(View.INVISIBLE);
         }
 
         /*
@@ -1774,28 +1783,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public class backgroundSendFriends extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... message) {
-            while (mTcpClient == null) ;
-            while (friendsready == false) ;
+            while (true) {
+                while (mTcpClient == null) ;
+                while (friendsready == false) ;
 
-            if (friends != "Friends") {
-                mTcpClient.sendMessage(friends);
-                Log.e("AsyncFriends", "Sending Friends: " + friends);
-            } else {
-                Log.e("AsyncFriends", "Error sending Friends");
+                if (friends != "Friends") {
+                    mTcpClient.sendMessage(friends);
+                    Log.e("AsyncFriends", "Sending Friends: " + friends);
+                } else {
+                    Log.e("AsyncFriends", "Error sending Friends");
+                }
+
+                while (!mTcpClient.friendsReceived) ;
+
+                if (!TCPClient.friendsArray.isEmpty()) {
+
+                    publishProgress(TCPClient.friendsArray.peek());
+                    TCPClient.friendsArray.remove();
+                    mTcpClient.friendsReceived = false;
+                } else {
+                    Log.e("AsyncFriends", "Reception Friends: Error");
+                }
+
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
-
-            while (!mTcpClient.friendsReceived) ;
-
-            if (!TCPClient.friendsArray.isEmpty()) {
-
-                publishProgress(TCPClient.friendsArray.peek());
-                TCPClient.friendsArray.remove();
-                mTcpClient.friendsReceived = false;
-            } else {
-                Log.e("AsyncFriends", "Reception Friends: Error");
-            }
-
-            return null;
         }
 
         @Override
@@ -1818,13 +1834,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 */
 
                 int i = 0;
+                menuRight.clear();
+                menuRight.add(0,0,0,"FRIENDS");
+                FriendsDataList.clear();
                 for (String item : items) {
 
                     if (i != 0) { //ignore first message
                         String[] data = item.split("\\#");
                         FriendsData<String, String, String> trio = new FriendsData<>(data[0], data[1], data[2]);
+
+                        menuRight.add(0, i, 0, "   " + data[0]);
                         FriendsDataList.add(trio);
-                        menuRight.add(0,i,0,data[0]);
+                        Log.e("DEBUG", "i actual: "+i);
+
+
+
+
+                        /*
+                        boolean contains = false;
+                        for (int x = 0; x < menuRight.size(); x++) {
+                            if (trio.getName().equals(menuRight.getItem(x).getTitle())) {
+                                contains = true;
+                                break;
+                            }
+                        }
+                        if (!contains) {
+                            menuRight.add(0, i, 0, data[0]);
+                            FriendsDataList.add(trio);
+                            contains = false;
+                        }
+                        */
+
                     }
                     i++;
                 }
@@ -1854,12 +1894,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
 
 
+        }
 
     }
 
-    }
-
-    public String getEmailByName(String newName){
+    public String getEmailByName(String newName) {
         for (FriendsData friendsdata : FriendsDataList) {
             if (newName == friendsdata.getName())
                 return friendsdata.getEmail().toString();
@@ -1912,7 +1951,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return new LatLng(start.latitude + (u * (end.latitude - start.latitude)), start.longitude + (u * (end.longitude - start.longitude)));
     } //the solution will give a point on a segment of a Polygon that is the closest point to the test point
-
 
 
 }
