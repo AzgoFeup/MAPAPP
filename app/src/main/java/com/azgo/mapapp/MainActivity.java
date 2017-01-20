@@ -231,9 +231,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mAuth = FirebaseAuth.getInstance();
 
-        View infoWindow = getLayoutInflater().inflate(R.layout.nav_header, null);
 
-        final TextView username = (TextView) infoWindow.findViewById(R.id.username);
+
+        View headerLayout = navigationView.inflateHeaderView(R.layout.nav_header);
+        final TextView username = (TextView) headerLayout.findViewById(R.id.username);
 
 
         if (mAuth.getCurrentUser().getDisplayName() != null) {
@@ -287,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
             //String phonemails = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DATA));
             phoneNumber = phoneNumber.replaceAll("\\s+", ""); //tirar espaços;
-            phoneNumber = phoneNumber.substring(phoneNumber.length() - 9); //buscar ultimos 9 numeros
+//            phoneNumber = phoneNumber.substring(phoneNumber.length() - 9); //buscar ultimos 9 numeros
             String oldfriends = friends + separator + phoneNumber;
             friends = oldfriends;
         }

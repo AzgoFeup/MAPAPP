@@ -173,14 +173,27 @@
         android:id="@+id/imageView5" />
 
 
+    <SurfaceView
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:id="@+id/surfaceView"
+        android:background="#FFFFFF"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
+
     <TextView
         android:text="clean history"
         android:textSize="15dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textView12"
-        android:layout_marginTop="525dp"
-        android:layout_marginLeft="150dp"/>
+        android:layout_marginLeft="150dp"
+        android:layout_marginBottom="69dp"
+        android:layout_above="@+id/surfaceView"
+        android:layout_centerHorizontal="true" />
 
 
 </RelativeLayout>
+
+

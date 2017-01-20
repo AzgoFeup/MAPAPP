@@ -415,12 +415,6 @@ public class mainLogin extends AppCompatActivity implements
         } else if (i == R.id.button_facebook_login){
             loginButton.performClick();
         }
-        else if (i == R.id.buttonDebug) {
-            Intent intent = new Intent(mainLogin.this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        }
     }
 
     private void goMainScreen() {

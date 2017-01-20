@@ -36,4 +36,14 @@
         android:layout_alignStart="@+id/aboutText"
         android:layout_marginBottom="194dp" />
 
+
+    <SurfaceView
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:id="@+id/surfaceView"
+        android:background="#FFFFFF"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
+
 </RelativeLayout>
